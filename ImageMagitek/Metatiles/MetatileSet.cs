@@ -12,7 +12,7 @@ namespace ImageMagitek.Metatiles;
 /// <summary>
 /// A table of metatiles, each a fixed rectangle of map entries in one or more layers, with the tile set and palette slots they draw from.
 /// </summary>
-public sealed class MetatileSet : IProjectResource
+public sealed class MetatileSet : IProjectResource, IUnavailableResource
 {
     public const int MaxShapeSize = 8;
     public const int MaxLayers = 4;
@@ -166,14 +166,13 @@ public sealed class MetatileSet : IProjectResource
             .FirstOrDefault(x => x.IsMissing);
 
     /// <summary>
-    /// The metatile, tile and attribute sources and every assigned palette slot
+    /// The metatile, tile and attribute sources (Cascade) and every assigned slot palette (FallbackPalette)
     /// </summary>
-    public IEnumerable<IProjectResource> LinkedResources =>
+    public IEnumerable<ResourceEdge> Dependencies =>
         new IProjectResource?[] { MetatileSource, TileSet.Source, AttributeSource }
             .OfType<IProjectResource>()
-            .Concat(PaletteSlots.OfType<Palette>())
+            .Select(x => new ResourceEdge(x, ResourceEdgeKind.Cascade))
+            .Concat(PaletteSlots.OfType<Palette>().Select(x => new ResourceEdge(x, ResourceEdgeKind.FallbackPalette)))
             .Distinct()
             .ToList();
-
-    public bool UnlinkResource(IProjectResource resource) => false;
 }

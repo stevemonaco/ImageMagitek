@@ -152,6 +152,9 @@ public static class IndexedImageExtensions
         if (result.Value is MagitekResult.Failed)
             return result;
 
+        if (image.Arranger is not Arranger arranger)
+            return new MagitekResult.Failed($"Cannot set the palette of an element in '{image.Arranger.Name}' because its elements cannot be set");
+
         var element = image.Arranger.GetElementAtPixel(x + image.Left, y + image.Top).Value;
         var codec = (IIndexedCodec)element.Codec;
 
@@ -161,7 +164,7 @@ public static class IndexedImageExtensions
 
             var clone = (IIndexedCodec)codecFactory.CloneCodec(codec);
             clone.Palette = pal;
-            image.Arranger.SetElement(element.WithCodec(clone), location.X, location.Y);
+            arranger.SetElement(element.WithCodec(clone), location.X, location.Y);
         }
 
         return MagitekResult.SuccessResult;

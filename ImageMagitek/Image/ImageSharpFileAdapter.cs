@@ -13,11 +13,11 @@ namespace ImageMagitek;
 
 public sealed class ImageSharpFileAdapter : IImageFileAdapter
 {
-    public void SaveImage(byte[] image, Arranger arranger, string imagePath) =>
+    public void SaveImage(byte[] image, IArrangerView arranger, string imagePath) =>
         SaveImage(image, arranger, new Rectangle(0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height), imagePath);
 
     /// <exception cref="InvalidOperationException">A pixel's index lies past the last entry of its element's palette</exception>
-    public void SaveImage(byte[] image, Arranger arranger, Rectangle subsection, string imagePath)
+    public void SaveImage(byte[] image, IArrangerView arranger, Rectangle subsection, string imagePath)
     {
         var width = subsection.Width;
         var height = subsection.Height;
@@ -60,7 +60,7 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
     /// Shifts each pixel's index into its palette's range of <paramref name="combined"/>, or returns null when an index
     /// lies past the end of its palette's slot
     /// </summary>
-    private static byte[]? TryMapToCombined(byte[] image, Arranger arranger, Rectangle subsection, CombinedPalette combined)
+    private static byte[]? TryMapToCombined(byte[] image, IArrangerView arranger, Rectangle subsection, CombinedPalette combined)
     {
         var result = new byte[subsection.Width * subsection.Height];
 
@@ -93,7 +93,7 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
     /// Splits each row of <paramref name="subsection"/> into runs of pixels within one element, in subsection coordinates
     /// </summary>
     /// <returns>Runs with a null palette for empty cells and elements without an indexed palette</returns>
-    private static IEnumerable<(int Y, int Start, int End, Palette? Palette)> EnumeratePaletteRuns(Arranger arranger, Rectangle subsection)
+    private static IEnumerable<(int Y, int Start, int End, Palette? Palette)> EnumeratePaletteRuns(IArrangerView arranger, Rectangle subsection)
     {
         var elementWidth = arranger.ElementPixelSize.Width;
 
@@ -109,7 +109,7 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
         }
     }
 
-    private static InvalidOperationException IndexPastPalette(Arranger arranger, Rectangle subsection, int x, int y, byte index, Palette palette)
+    private static InvalidOperationException IndexPastPalette(IArrangerView arranger, Rectangle subsection, int x, int y, byte index, Palette palette)
     {
         var location = arranger.PointToElementLocation(new Point(x + subsection.X, y + subsection.Y));
         return new InvalidOperationException($"Cannot export '{arranger.Name}': the element at ({location.X}, {location.Y}) " +

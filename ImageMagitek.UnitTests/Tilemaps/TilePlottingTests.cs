@@ -81,8 +81,7 @@ public sealed class TilePlottingTests : IDisposable
         return new ArrangerElement(0, 0, source ?? _rom, new BitAddress(TileOffset + tile * TileBytes + byteOffset, 0), codec);
     }
 
-    private static int TileAt(TilemapArranger tilemap, Arranger working, int x, int y) =>
-        tilemap.FindTileIndex(working.GetElement(x, y)!.Value.WithMirror(MirrorOperation.None)).AsSuccess.Result;
+    private static int TileAt(TilemapArranger tilemap, TilemapGrid working, int x, int y) => working[x, y]!.Value.TileIndex;
 
     private static TileBrush Brush(int width, int height, params int[] tiles)
     {
@@ -282,7 +281,7 @@ public sealed class TilePlottingTests : IDisposable
         WriteRom();
         using var tilemap = Create(_gba);
         var before = ReadRom();
-        var working = (ScatteredArranger)tilemap.CloneArranger();
+        var working = tilemap.CreateGrid();
         var plotter = new TilemapPlotter(tilemap, working);
 
         Assert.True(plotter.Stamp(TileBrush.Single(9, slot: 1, horizontalFlip: true), 2, 1));
@@ -297,7 +296,7 @@ public sealed class TilePlottingTests : IDisposable
         WriteRom();
         using var tilemap = Create(_gba);
         var before = ReadRom();
-        var working = (ScatteredArranger)tilemap.CloneArranger();
+        var working = tilemap.CreateGrid();
         var plotter = new TilemapPlotter(tilemap, working);
 
         Assert.True(plotter.Stamp(Brush(2, 2, 9, 10, 11, 12), Width - 1, Height - 1));
@@ -312,7 +311,7 @@ public sealed class TilePlottingTests : IDisposable
     {
         WriteRom();
         using var tilemap = Create(_gba);
-        var working = (ScatteredArranger)tilemap.CloneArranger();
+        var working = tilemap.CreateGrid();
         var plotter = new TilemapPlotter(tilemap, working);
 
         Assert.False(plotter.Stamp(TileBrush.Single(1), 1, 0));
@@ -328,7 +327,7 @@ public sealed class TilePlottingTests : IDisposable
         using var tilemap = new TilemapArranger("tilemap", _rom, MapOffset, _gba, MapScreenLayout.Linear, Width, Height, _rom, TileOffset,
             "GBA 4bpp", 0, [_slot0, _slot0], _codecFactory);
         var before = ReadRom();
-        var working = (ScatteredArranger)tilemap.CloneArranger();
+        var working = tilemap.CreateGrid();
         var plotter = new TilemapPlotter(tilemap, working);
 
         Assert.True(plotter.Stamp(TileBrush.Single(1, slot: 1), 1, 0));
@@ -345,7 +344,7 @@ public sealed class TilePlottingTests : IDisposable
     {
         WriteRom();
         using var tilemap = Create(_gba);
-        var working = (ScatteredArranger)tilemap.CloneArranger();
+        var working = tilemap.CreateGrid();
         var plotter = new TilemapPlotter(tilemap, working);
         var brush = Brush(2, 2, 9, 10, 11, 12);
         var origin = new Point(1, 1);
@@ -372,7 +371,7 @@ public sealed class TilePlottingTests : IDisposable
     {
         WriteRom();
         using var tilemap = Create(_gba);
-        var working = (ScatteredArranger)tilemap.CloneArranger();
+        var working = tilemap.CreateGrid();
         var plotter = new TilemapPlotter(tilemap, working);
 
         Assert.True(plotter.Fill(Brush(2, 1, 9, 10), new Rectangle(1, 1, 5, 3)));
@@ -392,7 +391,7 @@ public sealed class TilePlottingTests : IDisposable
     {
         WriteRom((1, 0, Gba(5, palette: 1, hflip: true, vflip: true)));
         using var tilemap = Create(_gba);
-        var working = (ScatteredArranger)tilemap.CloneArranger();
+        var working = tilemap.CreateGrid();
         var plotter = new TilemapPlotter(tilemap, working);
 
         var brush = plotter.Pick(new Rectangle(1, 0, 1, 1))!;
@@ -408,7 +407,7 @@ public sealed class TilePlottingTests : IDisposable
     {
         WriteRom((0, 0, Gba(3, palette: 1, hflip: true)), (1, 0, Gba(4, vflip: true)), (2, 0, Gba(999)));
         using var tilemap = Create(_gba);
-        var working = (ScatteredArranger)tilemap.CloneArranger();
+        var working = tilemap.CreateGrid();
         var plotter = new TilemapPlotter(tilemap, working);
 
         var brush = plotter.Pick(new Rectangle(0, 0, 3, 1))!;
@@ -428,7 +427,7 @@ public sealed class TilePlottingTests : IDisposable
         WriteRom();
         using var tilemap = Create(_gba, emptyTile: 7);
         var before = ReadRom();
-        var working = (ScatteredArranger)tilemap.CloneArranger();
+        var working = tilemap.CreateGrid();
         var plotter = new TilemapPlotter(tilemap, working);
 
         Assert.True(plotter.Erase(new Rectangle(2, 1, 1, 1)));
@@ -443,14 +442,14 @@ public sealed class TilePlottingTests : IDisposable
     {
         WriteRom();
         using var tilemap = Create(_mode7);
-        var working = (ScatteredArranger)tilemap.CloneArranger();
+        var working = tilemap.CreateGrid();
         var plotter = new TilemapPlotter(tilemap, working);
         var brush = TileBrush.Single(9, horizontalFlip: true);
-        var address = working.GetElement(0, 0)!.Value.SourceAddress;
+        var entry = working[0, 0];
 
         Assert.Equal("Map format 'SNES Mode 7' has no horizontal flip field", plotter.FindBrushError(brush));
         Assert.False(plotter.Stamp(brush, 0, 0));
-        Assert.Equal(address, working.GetElement(0, 0)!.Value.SourceAddress);
+        Assert.Equal(entry, working[0, 0]);
     }
 
     [Fact]
@@ -458,7 +457,7 @@ public sealed class TilePlottingTests : IDisposable
     {
         WriteRom();
         using var tilemap = Create(_gba);
-        var plotter = new TilemapPlotter(tilemap, (ScatteredArranger)tilemap.CloneArranger());
+        var plotter = new TilemapPlotter(tilemap, tilemap.CreateGrid());
 
         Assert.Equal("Tile 16 is not in the tile set (tiles 0 to 15)", plotter.FindBrushError(TileBrush.Single(16)));
         Assert.False(plotter.Stamp(TileBrush.Single(16), 0, 0));

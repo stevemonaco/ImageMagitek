@@ -4,7 +4,7 @@ The single list of work not done in ImageMagitek and TileShop: known bugs, gaps,
 Small items are taken straight from here and fixed with their spec updated; larger ones become a change proposal in `docs/changes/` first (see [docs/changes/README.md](changes/README.md)).
 When an item is closed, its line is deleted.
 
-**1.0** marks items that block the 1.0 release ([ARCHITECTURE.md](ARCHITECTURE.md) §1): they lose work, corrupt data, freeze the project format, or leave a visible control that does nothing. Out of scope for 1.0: direct-color XML codecs, compression ([proposal](changes/compression-support.md)), container scanners ([proposal](changes/container-scanners.md)), new platforms and color models, new drawing or selection tools, layers, tilemaps and scripting. Candidates for 1.1, roughly in order: sequential arrangers as project resources, export from sequential views and selections, CLI `--json` output and key globs, OS clipboard, tool hotkeys; then compression and direct-color XML codecs.
+**1.0** marks items that block the 1.0 release ([ARCHITECTURE.md](ARCHITECTURE.md) §1): they lose work, corrupt data, freeze the project format, or leave a visible control that does nothing. Out of scope for 1.0: direct-color XML codecs, container scanners ([proposal](changes/container-scanners.md)), new platforms and color models, new drawing or selection tools, layered scenes and scripting. Read-only compression ([proposal](changes/compression-support.md)), tilemaps, metatile maps and table generation are built on `dev-experiment` against draft specs and are not held to the 1.0 bar (ARCHITECTURE §1). Candidates for 1.1, roughly in order: sequential arrangers as project resources, export from sequential views and selections, CLI `--json` output and key globs, OS clipboard, tool hotkeys; then compression and direct-color XML codecs.
 
 Every **1.0** item belongs to a change proposal, linked at the end of its line: [docs-1-0](changes/docs-1-0.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
 
@@ -18,6 +18,7 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ### UI
 
+- [UI-BLOCK-PLOTTING-033] A metatile map editor with unsaved block edits keeps its grid when another writer changes the same block map, and its Save overwrites that writer's changes to the blocks it differs on (LIB-METATILE-MAPS Open items); done when Save detects or merges them.
 - [UI-PROJECT-TREE-135] The Add New Tilemap dialog lists the "FRLG Block" block format (LIB-METATILE-MAPS-011) among tilemap map formats, since both come from one map format factory; a tilemap built with it has no palette or flip fields.
 
 ## Missing validation
@@ -35,9 +36,8 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ## Undecided questions
 
+- [LIB-TILEMAPS, UI-GRAPHICS-EDITOR] How the editor shows the priority bit (an overlay toggle, a tint, or nothing until layers exist); it round-trips but is invisible today; done when decided and recorded in LIB-TILEMAPS Decisions.
 - [LIB-PROJECT-SERVICE] Whether `ApplyResourceDeletionAsync` should report a kept non-empty folder as a failure although its nodes were removed; done when decided.
-- [LIB-PROJECT-FORMAT] `ScatteredArrangerModel` equality ignores `Name` (inherited from `ResourceEquals`); done when the user confirms it or the name is compared.
-- [UI-PROJECT-TREE] The generation dialog shows no thumbnail of the selected metatile map, tilemap or palette output (UI-PROJECT-TREE Open items).
 - [UI-PROJECT-TREE] A data file's missing state is read only on project open, so it does not update if the file disappears or reappears mid-session; done when refreshed, or the decision to leave it is recorded.
 - **1.0** [UI-PALETTE-EDITOR] "Duplicate to project" for global palettes (PLAN Milestone 4, marked done) does not exist; the closest is the Add Palette dialog's template option, and no UI path opens a global palette in the editor, so read-only mode looks unreachable; done when either a Duplicate command and a way to open global palettes exist, or UI-PALETTE-EDITOR-090/091 are struck.
 
@@ -52,7 +52,7 @@ Found by reading the code, not reproduced, unless a test is named.
 
 - [LIB-CODECS] Direct-color XML codecs: the schema accepts `colortype="direct"`, `CodecFactory` throws `NotSupportedException`.
 - [LIB-COMPRESSION] Read-only compression support: core, UI and the Square LZSS sample are in (draft spec); remaining tasks are in the [change proposal](changes/compression-support.md).
-- [LIB-PROJECT-FORMAT, UI-GRAPHICS-EDITOR] Sequential arrangers as project resources ("save view as arranger"; deferred to 1.1); done when one saves and reloads. Unblocks persisting the element layout (P2, deliberately not done in Milestone 9) and per-file view state for standalone files.
+- [LIB-PROJECT-FORMAT, UI-GRAPHICS-EDITOR] Sequential arrangers as project resources ("save view as arranger"; deferred to 1.1), added as a resource kind (LIB-PROJECT-FORMAT "Adding a resource kind"); done when one saves and reloads. Unblocks persisting the element layout (P2, deliberately not done in Milestone 9) and per-file view state for standalone files.
 - [LIB-PALETTES, LIB-PROJECT-FORMAT, UI-PALETTE-EDITOR] Palettes of only project colors, saved in the palette XML with no data file (intended, never built): the writer refuses them (LIB-PROJECT-FORMAT-036), `ProjectTreeBuilder.AddPalette` fails "has no data file", `Palette.LoadForeignPalette` guards on a data source, and the editor cannot change model or apply sources without one; done when such a palette is created, edited, saved and reloaded.
 - [LIB-PALETTES, UI-PALETTE-EDITOR] Remaining palette file formats: RIFF `.pal`, `.act`, `.hex`, and a JSON writer (JASC `.pal` and `.gpl` exist).
 
@@ -60,13 +60,10 @@ Found by reading the code, not reproduced, unless a test is named.
 
 - [LIB-CODECS] Platforms: Game Boy/GBC 2bpp (explicit entry), Master System 4bpp, PC Engine/TG16, N64 CI4/CI8/IA/I, NDS, Saturn, Neo Geo sprites, Atari/Lynx, WonderSwan; GBA/NDS BGR555 direct bitmap codecs.
 - [LIB-SCANNING] Container scanners: find self-describing graphics (PSX TIM first) in a data file and add them as arrangers and palettes, and browse archive entries through container-reader plugins: [change proposal](changes/container-scanners.md).
-- [LIB-TABLES] Table-driven resources: generate arrangers and palettes from a game's record tables through a declarative definition and regenerate them after the table changes (both done; the generator plugin contract and Task 8 remain), and relocate data by rewriting its pointer (a separate proposal): [change proposal](changes/table-resources.md).
 - [LIB-TABLES] An overview output that packs every record's arranger into one arranger with per-element palettes, such as FF4's shelf-packed "All Monsters"; done when the FF4 definition can generate it.
 - [LIB-TABLES] The arranger `mask` layout, once a game that uses it can check its bit order; done when a definition with `layout="mask"` loads and generates.
 - [LIB-TABLES] Following a bank-implied 16-bit pointer with a field's `to` (today only `map` can map one); done when a game needs it and such a field reaches its record.
-- [LIB-TILEMAPS] Tilemap resources: a map read from data, decoded by a map format, edited in Arrange mode, plotted in Tiles mode and written back in place: [change proposal](changes/tilemaps.md).
 - [LIB-SCENES] Layered scenes: stack arrangers back to front with transparency into one composite view, export it, and draw on an active layer: [change proposal](changes/layers.md).
-- [LIB-METATILE-MAPS] Metatile maps: block maps drawn through shared metatile sets with layered metatiles, viewed composited and edited by plotting blocks, as in FireRed's overworld: [change proposal](changes/metatile-maps.md).
 - [LIB-CODECS] XML format extensions: tile stride/padding, bit order and endianness, per-tile header bytes (variable-width fonts currently need a plugin).
 - [LIB-ARRANGERS] Bit-wise sequential offsets: tiled elements and absolute moves are bit-addressed, but Single-layout stepping (TODO in `SequentialArranger`) and its row/column/page steps are not; done when Single-layout round-trip tests pass at a non-byte-aligned offset.
 - [LIB-COLORS] Color models: RGB24, ARGB32, RGB565, TG16 GRB333, N64 IA/I, grayscale.
@@ -84,6 +81,20 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-IMAGES, LIB-PROJECT-FORMAT] WAL protection for binary pixel writes (`SaveImage` writes sources in place); done when an interrupted pixel save is recovered.
 - [LIB-PROJECT-SERVICE, UI-PROJECT-TREE] Duplicate resource; "New Sequential Arranger" in the tree.
 - [CLI-COMMANDS] Dry-run and report output (import report without committing), `--json` for print/import/export, key filters and globs (`export "Sprites/*"`), palette export/import verbs.
+- [LIB-TABLES, LIB-PLUGINS] Generator plugins for games whose tables are procedural: a contract in `ImageMagitek.Plugins.Contracts` (a minor version) that takes the data file's bytes and returns record descriptions (outputs with their attributes) with no core types; done when the FF5 monster samples generate through one.
+- [LIB-TABLES] The `snes-hirom`, `nes` and `gb` address mappers (accepted by the schema, refused at load); done when a definition using each loads and its addresses round-trip.
+- [LIB-TABLES, LIB-TILEMAPS] Relocation: move a record's data to free space and rewrite its pointer, designed with tilemap re-tile import around one free-space model (LIB-TABLES "Relocation is a separate proposal"); needs its own change proposal, since it reverses ARCHITECTURE's "relocating blocks" non-goal.
+- [UI-PROJECT-TREE] A thumbnail of the selected output in the generation dialog (UI-PROJECT-TREE Open items: a metatile map or tilemap renders only once its planned model is built into a tree); done when selecting a planned palette, arranger, tilemap or metatile map shows it.
+- [UI-PROJECT-TREE] Regenerate... on a generated folder's context menu, opening the generation dialog with the manifest's data file, definition and folder filled in (today regeneration means reopening Generate Resources from Table... on the data file and entering the same folder); done when a folder with a manifest generation offers it.
+- [UI-PROJECT-TREE, LIB-TILEMAPS] The Add New Tilemap dialog previews a text summary (entry count, highest tile index, out-of-range count), not the rendered map (UI-PROJECT-TREE-135); done when it shows the map as it will render and updates with the fields.
+- [UI-PROJECT-TREE, LIB-PROJECT-SERVICE] Tilemap properties (map and tile offsets, size, layout, format, codec, first, empty and declared tile count, palette slots, tile palette arranger) can be changed after creation only in the XML; done when a Properties dialog on a tilemap node rewrites the resource and reopens its editor.
+- [LIB-TILEMAPS] NES nametables and Game Boy Color maps keep palette and flip data outside the entry (NES: 2 bits per 16×16 area; CGB: a second VRAM bank), so they load with slot 0 and no flips; done when a tilemap can name an attribute source (or a plugin format) and an NES title screen shows its palettes.
+- [UI-GRAPHICS-EDITOR, LIB-TILEMAPS] In a tilemap editor, cells that share a tile drawn in another cell keep their old pixels until Save takes a new working grid (LIB-TILEMAPS Open items); done when every cell of a drawn tile updates while drawing.
+- [UI-PROJECT-TREE, LIB-PROJECT-SERVICE, LIB-METATILE-MAPS] "New Metatile Set..." and "New Metatile Map..." dialogs with a rendered preview (metatile resources today come only from generation or hand-written XML); done when one of each is added from the tree, previews, saves and reloads.
+- [LIB-METATILE-MAPS, LIB-TILEMAPS, UI-BLOCK-PLOTTING] Metatile editing: open a metatile set's table as a tilemap whose screen layout is the metatile order, so Tiles mode edits a block's tiles, palettes and flips and every use of the block changes; done when a FireRed metatile edited this way saves and the map redraws.
+- [LIB-METATILE-MAPS, LIB-TABLES, UI-BLOCK-PLOTTING] Named attribute and block-bit fields (FireRed collision, elevation, behavior) from a per-game definition, shown in hover status and as collision and elevation overlays, then editable; done when the FireRed definition names them and the overlay shows collision and elevation separately.
+- [UI-BLOCK-PLOTTING, LIB-SCENES] Arrange (move, copy and paste block regions) and Draw on the active metatile layer of a metatile map; done when a block region can be copied within a map and a pixel drawn on one layer saves to the tiles.
+- [UI-BLOCK-PLOTTING] Draw a map's border metatile map around it as a view option (LIB-METATILE-MAPS Open items); done when Pallet Town shows its border.
 
 ### P3
 
@@ -96,6 +107,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-PROJECT-SERVICE, UI-PROJECT-TREE] Project tree search/filter; project metadata (description, ROM checksum, notes); IPS/BPS patch output instead of writing in place.
 - [CLI-COMMANDS] Project authoring verbs (`new`, `add-datafile`, `add-palette`, `add-arranger`), a batch manifest, a scripting host, `dotnet tool` packaging.
 - [UI-SHELL] Customizable keybindings; save and restore the window and dock layout; localization; a plugin manager (decided against for 1.0: About lists plugin codecs).
+- [LIB-TILEMAPS, LIB-IMAGE-IO] Re-tile import: split an imported PNG into tiles, deduplicate them with flips, write new tiles into declared free slots and rewrite the map, instead of reporting shared-tile conflicts; needs the free-space model that table relocation needs (LIB-TABLES); done when a redrawn title screen imports without conflicts.
 
 ## Untested behavior worth a test
 
@@ -103,7 +115,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-CODECS] XML schema and semantic validation failures; unknown name throws `KeyNotFoundException`; direct-color XML throws; pattern codecs ignore the requested size; each codec gets its own format clone; `CloneCodec`.
 - [LIB-COLORS] RGB15, BGR6, NES and RGBA32 conversion; BGR9 to-foreign rounding; hex format and parse for every model; factory `NotSupported`/`ArgumentException` paths; distance ties pick the lowest index; `GetIndexByNativeColor` throwing.
 - [LIB-PALETTES] 3-byte and big-endian file colors; `ZeroIndexTransparent` raises `Changed` only on a real change; global `SavePalette` returns false; JSON `zeroIndexTransparent` default (true) and `JsonException` cases; `PaletteStore` default and NES loading.
-- [LIB-ARRANGERS] `SequentialArranger.Move` per move type including clamping; `ChangeElementLayout` rounding and pattern order (2x2 H vs 2x2 V addresses); `CloneArranger` (full, sub-rectangle, Single-layout restriction); `UnlinkResource`.
+- [LIB-ARRANGERS] `SequentialArranger.Move` per move type including clamping; `ChangeElementLayout` rounding and pattern order (2x2 H vs 2x2 V addresses); `CloneArranger` (full, sub-rectangle, Single-layout restriction).
 - **1.0** [LIB-ARRANGERS] `ElementCopier` (`ElementCopierTests` is entirely commented out), including paste cropping and the cross-project refusal.
 - **1.0** [LIB-IMAGES] `ImageCopier` (`ImageCopierTests` has one empty method without `[Fact]`): each `CopyPixels` overload, the blank-element failure, operation order; `SaveImage` raising `NotifyDataWritten` once per distinct source; `CanSetPixel`/`SetPixel(color)`/`GetPixelColor`; FloodFill not crossing palettes.
 - [LIB-IMAGE-IO] RGBA fallback export (over 256 combined entries, index past its slot, empty-cell transparency), empty cells exporting as index 0, `LoadImage` and `Prepare(path)` failure results.
@@ -122,6 +134,15 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-ARRANGERS] `ArrangerBuilder`'s sequential path ignores `WithElementLayout` and `WithPixelColorType`.
 - [LIB-IMAGES] `CopyPixelsDirect` on an indexed arranger throws `NotImplementedException` where the indexed variant throws `ArgumentException`; `ImageBase.Right`/`Bottom` doc comments say inclusive, the values are exclusive.
 - [LIB-PROJECT-TREE] `ProjectResourceBaseComparer` (internal, unused) and `IProjectResource.ShouldBeSerialized` (never read).
+- [LIB-TILEMAPS, LIB-METATILE-MAPS] One generic `GridPlotter<TCell>` (stamp, stroke snap, fill, erase, pick), `GridBrush<TCell>` and `CellPalette<TCell>` in place of the `TilemapPlotter`/`MetatileMapPlotter`, `TileBrush`/`BlockBrush` and `TilePalette`/`BlockPalette` pairs, with no behavior change to LIB-TILEMAPS-064 to -070 or LIB-METATILE-MAPS-033 to -037; done when both plotting test suites pass on the generic types.
+- [UI-GRAPHICS-EDITOR] A per-kind edit session (scattered, sequential, tilemap) chosen when the graphics editor opens, replacing the remaining `_tilemap`, `TilemapView` and `ScatteredArranger` branches in `GraphicsEditorViewModel` (save, reload, discard, paste, delete, Apply Palette, mirror, rotate, disabled reasons, `ReadsFrom`); done when the view model has no type checks on its arranger.
+- [LIB-PROJECT-FORMAT] A shared `TileSetModel` sub-object on `TilemapModel` and `MetatileSetModel` for the repeated tile set fields, keeping the flat attributes (`tiledatafile`, `tileoffset`, `codec`, `firsttile`, `tilecount`, `paletteslot`), so no format change; done when both models use it and the format tests pass unchanged.
+- [LIB-TILEMAPS, LIB-METATILE-MAPS] Rename `TilemapArranger` and `MetatileLayerArranger` now that they are views, not arrangers (for example `Tilemap` and `MetatileLayerView`); done when no type named `*Arranger` is not an `Arranger`.
+- [LIB-PROJECT-TREE, UI-PROJECT-TREE] Collapse the `ResourceNode<TModel>` subclasses into one generic node keyed by resource kind (LIB-PROJECT-FORMAT-075); done when no UI code matches on a per-kind node type.
+- [UI-ARRANGING] The graphics editor's element and pixel clipboard is a static field (`GraphicsEditorViewModel.Selection.cs`), so it is process-global and cleared through a static call from `EditorsViewModel`; done when it is an injected service owned by the editors.
+- [ARCHITECTURE] `ImageMagitek.UnitTests` references TileShop.UI, TileShop.CLI, the plugin samples and DemoArtGenerator, so library tests cannot build without Avalonia; done when library and service tests live in a project that references only the library, the services and the samples.
+- [LIB-TABLES] 63 public types in `ImageMagitek/Tables`, most of them evaluation internals; done when only what the services, CLI and UI use (the definition reader, `TableDefinition`, `TableGenerator`, `GenerationPlan`, the manifest types) is public and the rest internal, with tests through `InternalsVisibleTo`.
+- [LIB-IMAGES, LIB-SCENES] Indexed-to-RGBA conversion is written separately for the editor renderers, PNG export and `LayerImage`, while LIB-SCENES-004 needs layer output to match the editor exactly; done when one conversion serves all of them.
 
 ## Release engineering and documentation
 
@@ -160,3 +181,5 @@ DevTools cannot drive pointer gestures, drag and drop, or popups, so these need 
 - [UI-SHELL] Save All becomes enabled after a pixel edit is applied (DevTools cannot apply a pending paste), and saves every modified editor without prompting.
 - [CLI-COMMANDS] `TileShopCLI print` with `_palettes/Classic.json` renamed in the build output exits -4 (the malformed-codec warning is covered by `CliApplicationTests.BootstrapIssue_PrintsWarningExits0`).
 - [CLI-PUBLISH] In the trimmed single-file publish, `--help`, `export --help` and `--version` exit 0, and with the sample plugin under `_plugins` an arranger using "Last Armageddon Font" exports and `importall` skips it as read-only.
+- [UI-ARRANGING, UI-TILE-PLOTTING] FF4 title screen tilemap on a copy of the FF2 project: move a cell and plot a tile, save, and check the screen in an emulator (the map bytes were checked in a hex editor on 2026-10-20).
+- [UI-BLOCK-PLOTTING] On a copy of the FireRed project, place a tree in Pallet Town in Blocks mode, Save, and check the town in an emulator (UI-BLOCK-PLOTTING-031 checks only the bytes).

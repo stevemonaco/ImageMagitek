@@ -184,7 +184,6 @@ public sealed class MetatileProjectTests : IAsyncLifetime
 
     [Theory]
     [InlineData("/Rom")]
-    [InlineData("/Low")]
     public async Task DeletingDataSource_RemovesSetsAndMaps(string deletedKey)
     {
         var (_, primary, _, map) = await AddTwoSetMapAsync();
@@ -200,6 +199,38 @@ public sealed class MetatileProjectTests : IAsyncLifetime
         Assert.False(_tree.TryGetNode("/Town", out _));
         Assert.False(File.Exists(PrimaryFile));
         Assert.False(File.Exists(MapFile));
+    }
+
+    [Fact]
+    public async Task DeletingSlotPalette_KeepsSetAndMaps_AndClearsSlot()
+    {
+        var (_, primary, secondary, map) = await AddTwoSetMapAsync();
+        Assert.True(_tree.TryGetNode("/Low", out var lowNode));
+
+        var plan = _service.PreviewResourceDeletion(lowNode).AsSuccess.Result;
+
+        var setChange = Assert.Single(plan.Changes, x => ReferenceEquals(x.Resource, primary));
+        var mapChange = Assert.Single(plan.Changes, x => ReferenceEquals(x.Resource, map));
+        Assert.False(setChange.Removed);
+        Assert.True(setChange.LostSlotPalette);
+        Assert.False(mapChange.Removed);
+        Assert.True(mapChange.LostSlotPalette);
+        Assert.DoesNotContain(plan.Changes, x => ReferenceEquals(x.Resource, secondary));
+
+        Assert.True((await _service.ApplyResourceDeletionAsync(plan, _globalPalette)).HasSucceeded);
+        Assert.DoesNotContain("/Low", File.ReadAllText(PrimaryFile));
+        Assert.True(File.Exists(MapFile));
+        Assert.True(_tree.TryGetItem<MetatileSet>("/Primary", out var rebuiltPrimary));
+        Assert.True(_tree.TryGetItem<MetatileMap>("/Town", out var rebuiltMap));
+        Assert.NotSame(primary, rebuiltPrimary);
+        Assert.NotSame(map, rebuiltMap);
+        Assert.Same(rebuiltPrimary, rebuiltMap.Sets[0].Set);
+        Assert.Same(secondary, rebuiltMap.Sets[1].Set);
+        Assert.Null(rebuiltPrimary.PaletteSlots[0]);
+
+        var reopened = await ReopenAsync();
+        Assert.True(reopened.TryGetItem<MetatileMap>("/Town", out var loaded));
+        Assert.Null(loaded.Sets[0].Set.PaletteSlots[0]);
     }
 
     [Fact]

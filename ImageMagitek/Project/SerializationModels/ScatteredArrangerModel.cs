@@ -5,7 +5,7 @@ using System.Linq;
 namespace ImageMagitek.Project.Serialization;
 
 /// <summary>
-/// A scattered arranger's model; equality compares the layout and every element but not <see cref="ResourceModel.Name"/>
+/// A scattered arranger's model; equality compares its name, layout and every element
 /// </summary>
 public sealed record ScatteredArrangerModel : ResourceModel
 {
@@ -20,7 +20,7 @@ public sealed record ScatteredArrangerModel : ResourceModel
         if (other is null)
             return false;
 
-        if (other.ArrangerElementSize != ArrangerElementSize || other.ElementPixelSize != ElementPixelSize ||
+        if (other.Name != Name || other.ArrangerElementSize != ArrangerElementSize || other.ElementPixelSize != ElementPixelSize ||
             other.Layout != Layout || other.ColorType != ColorType)
             return false;
 
@@ -29,5 +29,5 @@ public sealed record ScatteredArrangerModel : ResourceModel
             .All(x => Equals(x.First, x.Second));
     }
 
-    public override int GetHashCode() => HashCode.Combine(ArrangerElementSize, ElementPixelSize, Layout, ColorType);
+    public override int GetHashCode() => HashCode.Combine(Name, ArrangerElementSize, ElementPixelSize, Layout, ColorType);
 }

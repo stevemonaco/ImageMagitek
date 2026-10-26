@@ -6,7 +6,7 @@ using TileShop.Shared.Interactions;
 namespace ImageMagitek.UnitTests;
 
 /// <summary>
-/// Answers prompts from a queue and records each prompt's message
+/// Answers prompts from a queue and records each prompt's and alert's message
 /// </summary>
 internal sealed class ScriptedInteractionService : IInteractionService
 {
@@ -14,7 +14,13 @@ internal sealed class ScriptedInteractionService : IInteractionService
     public List<string> Messages { get; } = [];
     public int PromptCount => Messages.Count;
 
-    public Task AlertAsync(string heading, string message) => Task.CompletedTask;
+    public List<(string Heading, string Message)> Alerts { get; } = [];
+
+    public Task AlertAsync(string heading, string message)
+    {
+        Alerts.Add((heading, message));
+        return Task.CompletedTask;
+    }
 
     public Task<PromptResult> PromptAsync(PromptChoice choices, string heading, string message)
     {

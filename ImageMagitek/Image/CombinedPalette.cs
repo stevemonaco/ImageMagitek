@@ -22,7 +22,7 @@ internal sealed class CombinedPalette
         Colors = colors;
     }
 
-    public static CombinedPalette? TryCreate(Arranger arranger)
+    public static CombinedPalette? TryCreate(IArrangerView arranger)
     {
         if (arranger.ColorType != PixelColorType.Indexed)
             return null;

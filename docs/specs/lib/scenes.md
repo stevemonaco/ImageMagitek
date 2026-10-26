@@ -21,7 +21,7 @@ depends:
 
 ## Purpose
 
-Draws several rendered layers back to front into one 32-bit image, the way consoles stack backgrounds. `LayerImage` renders an arranger to 32-bit color, and `LayerCompositor` stacks layer images over a backdrop. Metatile maps (LIB-METATILE-MAPS) composite their own metatile layers with it. The scene resource of the [layers proposal](../../changes/layers.md) builds on it later; this draft specifies only the compositing core, and the scene requirements are added with that proposal's Task 2.
+Draws several rendered layers back to front into one 32-bit image, the way consoles stack backgrounds. `LayerImage` renders an arranger, or any arranger view (`IArrangerView`, LIB-ARRANGERS-053) such as a metatile map layer, to 32-bit color, and `LayerCompositor` stacks layer images over a backdrop. Metatile maps (LIB-METATILE-MAPS) composite their own metatile layers with it. The scene resource of the [layers proposal](../../changes/layers.md) builds on it later; this draft specifies only the compositing core, and the scene requirements are added with that proposal's Task 2.
 
 ## Requirements
 

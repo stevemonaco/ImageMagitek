@@ -20,7 +20,7 @@ public sealed record MetatileMapSet(MetatileSet Set, int Base);
 /// A block map drawn through an ordered list of metatile sets. It exposes one derived arranger per metatile layer and composites them;
 /// it is not an arranger itself.
 /// </summary>
-public sealed class MetatileMap : IProjectResource, IDisposable
+public sealed class MetatileMap : IProjectResource, IDisposable, IUnavailableResource
 {
     private readonly object _gridLock = new();
     private readonly IGraphicsCodec[][] _setCodecs;
@@ -92,6 +92,8 @@ public sealed class MetatileMap : IProjectResource, IDisposable
             return _mapError;
         }
     }
+
+    string? IUnavailableResource.UnavailableReason => MapError;
 
     /// <summary>
     /// Slot 0's color 0, made opaque, which shows where every layer is transparent
@@ -386,7 +388,7 @@ public sealed class MetatileMap : IProjectResource, IDisposable
     }
 
     // Layers above the bottom treat index 0 as transparent whatever the palette's flag says, as GBA and SNES backgrounds do
-    private LayerImage CompositeLayers(IReadOnlyList<Arranger> layers, Size size) =>
+    private LayerImage CompositeLayers(IReadOnlyList<IArrangerView> layers, Size size) =>
         LayerCompositor.Composite(size,
             layers.Select((layer, i) => new CompositorLayer(LayerImage.FromArranger(layer, forceZeroTransparent: i > 0), Point.Empty, IsLayerVisible(i))).ToList(),
             Backdrop);
@@ -467,12 +469,12 @@ public sealed class MetatileMap : IProjectResource, IDisposable
         MetatileSet.FindMissing(Sets.SelectMany(x => x.Set.ReadSources).Prepend(BlockSource));
 
     /// <summary>
-    /// The block map source and every listed metatile set
+    /// The block map source and every listed metatile set, all Cascade
     /// </summary>
-    public IEnumerable<IProjectResource> LinkedResources =>
-        Sets.Select(x => (IProjectResource)x.Set).Prepend(BlockSource).Distinct().ToList();
-
-    public bool UnlinkResource(IProjectResource resource) => false;
+    public IEnumerable<ResourceEdge> Dependencies =>
+        Sets.Select(x => (IProjectResource)x.Set).Prepend(BlockSource).Distinct()
+            .Select(x => new ResourceEdge(x, ResourceEdgeKind.Cascade))
+            .ToList();
 
     public void Dispose()
     {

@@ -25,7 +25,7 @@ public class MirrorToolHandler : IToolHandler<GraphicsEditorViewModel>
         var elementX = ctx.PixelX / state.WorkingArranger.ElementPixelSize.Width;
         var elementY = ctx.PixelY / state.WorkingArranger.ElementPixelSize.Height;
 
-        var result = state.WorkingArranger.TryMirrorElement(elementX, elementY, _operation);
+        var result = state.TryMirrorElement(elementX, elementY, _operation);
         if (result.HasSucceeded)
         {
             state.AddHistoryAction(new MirrorElementHistoryAction());

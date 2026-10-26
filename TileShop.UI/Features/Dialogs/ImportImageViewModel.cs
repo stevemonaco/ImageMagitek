@@ -31,7 +31,7 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
 
     public override DialogSize Size => DialogSize.Full;
 
-    public Arranger Arranger { get; }
+    public IArrangerView Arranger { get; }
     public bool IsIndexed => Arranger.ColorType == PixelColorType.Indexed;
     public GridSettingsViewModel GridSettings { get; }
 
@@ -79,7 +79,7 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
     public Action? OnResetZoom { get; set; }
     public Action<Point>? OnCenterOn { get; set; }
 
-    public ImportImageViewModel(Arranger arranger, string imageFileName, IAsyncFileRequestService fileSelect, UserPreferencesStore preferencesStore,
+    public ImportImageViewModel(IArrangerView arranger, string imageFileName, IAsyncFileRequestService fileSelect, UserPreferencesStore preferencesStore,
         IInteractionService interactions, Rectangle? bounds = null)
     {
         if (arranger.ColorType is not (PixelColorType.Indexed or PixelColorType.Direct))

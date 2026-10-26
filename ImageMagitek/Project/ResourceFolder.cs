@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace ImageMagitek.Project;
 public sealed class ResourceFolder : IProjectResource
@@ -15,13 +14,5 @@ public sealed class ResourceFolder : IProjectResource
 
     public bool ShouldBeSerialized { get; set; } = true;
 
-    public bool UnlinkResource(IProjectResource resource) => false;
-
-    public IEnumerable<IProjectResource> LinkedResources
-    {
-        get
-        {
-            return Enumerable.Empty<IProjectResource>();
-        }
-    }
+    public IEnumerable<ResourceEdge> Dependencies => [];
 }

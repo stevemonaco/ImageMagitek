@@ -1,8 +1,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using ImageMagitek;
-using ImageMagitek.Metatiles;
+using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services;
 using Monaco.PathTree;
 using TileShop.CLI.Porters;
@@ -23,7 +22,7 @@ public class ImportAllHandler : ProjectCommandHandler<ImportAllOptions>
         if (project is null)
             return ExitCode.ProjectOpenError;
 
-        foreach (var node in project.EnumerateDepthFirst().Where(x => x.Item is ScatteredArranger or TilemapArranger or MetatileMap))
+        foreach (var node in project.EnumerateDepthFirst().Where(x => ResourceKindRegistry.BuiltIn.FindByResource(x.Item)?.Exportable == true))
         {
             var relativeFile = Path.Combine(project.CreatePaths(node).ToArray());
             var imageFileName = Path.Combine(options.ImportDirectory, $"{relativeFile}.png");

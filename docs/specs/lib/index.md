@@ -33,8 +33,8 @@ One spec per feature; format and usage in [../README.md](../README.md). Find a t
 
 | Spec | Id | Owns |
 |---|---|---|
-| [Project tree and resource nodes](project-tree.md) | LIB-PROJECT-TREE | `ProjectTree`, `ProjectTreeChange`, `ResourceNode` and node types, `ImageProject`, `ResourceFolder` |
-| [Project service](project-service.md) | LIB-PROJECT-SERVICE | `ProjectService`, `ResourceChange`, `ResourceDeletionPlan` |
+| [Project tree and resource nodes](project-tree.md) | LIB-PROJECT-TREE | `ProjectTree`, `ProjectTreeChange`, `ResourceNode` and node types, `ImageProject`, `ResourceFolder`, `ResourceGraph` |
+| [Project service](project-service.md) | LIB-PROJECT-SERVICE | `ProjectService`, `ResourceGenerationService`, `ResourceDeletionPlanner`, `ResourceChange`, `ResourceDeletionPlan` |
 | [XML project format and transactional writes](project-format.md) | LIB-PROJECT-FORMAT | `XmlProjectReader`, `XmlProjectWriter`, `ProjectTreeBuilder`, serialization models, `WriteAheadLogTransaction` |
 | [Bootstrapping and application settings](services.md) | LIB-SERVICES | `BootstrapService`, `SettingsService`, `AppSettings` |
 

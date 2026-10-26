@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -27,17 +28,18 @@ namespace ImageMagitek.UnitTests.Dialogs;
 
 public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
 {
-    private readonly GenerationProjectContext _context = new(f => new GatedProjectService(f));
+    private readonly GenerationProjectContext _context = new(workspace => new GatedGenerationService(workspace));
     private readonly StubFileRequestService _files = new();
     private readonly ScriptedInteractionService _interactions = new();
 
-    private GatedProjectService Service => (GatedProjectService)_context.Service;
+    private ProjectService Service => _context.Service;
+    private GatedGenerationService Generation => (GatedGenerationService)_context.Generation;
 
     public Task InitializeAsync() => _context.InitializeAsync();
 
     public Task DisposeAsync()
     {
-        Service.Gate.Set();
+        Generation.Gate.Set();
         _context.Dispose();
         return Task.CompletedTask;
     }
@@ -45,7 +47,7 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
     private GenerateResourcesViewModel Create(string? definitionPath = null, EditorsViewModel? editors = null, string dataFileKey = "/Rom",
         string folderKey = "/Generated")
     {
-        var vm = new GenerateResourcesViewModel(Service, _context.Tree, dataFileKey, folderKey, _files, _interactions, editors);
+        var vm = new GenerateResourcesViewModel(Generation, _context.Tree, dataFileKey, folderKey, _files, _interactions, editors);
         vm.DefinitionPath = definitionPath ?? _context.DefinitionFile;
         return vm;
     }
@@ -169,12 +171,12 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
 
         AssertNoPreview(vm);
 
-        Service.Gate.Reset();
+        Generation.Gate.Reset();
         var preview = vm.PreviewCommand.ExecuteAsync(null);
         Assert.True(vm.IsPreviewing);
         Assert.False(vm.PreviewCommand.CanExecute(null));
         vm.TargetFolder = "/Late";
-        Service.Gate.Set();
+        Generation.Gate.Set();
         await preview;
 
         Assert.False(vm.IsPreviewing);
@@ -211,7 +213,7 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
 
         await vm.TryAcceptCommand.ExecuteAsync(null);
 
-        Assert.Equal(saveProject, Service.LastSaveProject);
+        Assert.Equal(saveProject, Generation.LastSaveProject);
     }
 
     [Fact]
@@ -252,8 +254,8 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
     private async Task GenerateFirstAsync()
     {
         var definition = _context.Definitions.Load("Synthetic.table.xml").AsSuccess.Result;
-        var plan = Service.PlanGeneration(_context.Tree, "/Rom", definition, "/Generated").AsSuccess.Result;
-        Assert.True((await Service.GenerateResourcesAsync(_context.Tree, plan)).HasSucceeded);
+        var plan = Generation.PlanGeneration(_context.Tree, "/Rom", definition, "/Generated").AsSuccess.Result;
+        Assert.True((await Generation.GenerateResourcesAsync(_context.Tree, plan)).HasSucceeded);
     }
 
     private Task RepointMapAsync() =>
@@ -322,7 +324,7 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
         Assert.False(vm.OverwriteEdited);
         await vm.PreviewCommand.ExecuteAsync(null);
         Assert.True(vm.HasPreview);
-        Assert.Equal(false, Service.LastOverwriteEdited);
+        Assert.Equal(false, Generation.LastOverwriteEdited);
 
         vm.OverwriteEdited = true;
 
@@ -331,7 +333,7 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
 
         await vm.PreviewCommand.ExecuteAsync(null);
 
-        Assert.Equal(true, Service.LastOverwriteEdited);
+        Assert.Equal(true, Generation.LastOverwriteEdited);
         Assert.True(vm.HasPreview);
 
         vm.TargetFolder = "/Other";
@@ -353,7 +355,7 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
         var message = Assert.Single(_interactions.Messages);
         Assert.StartsWith("Remove 1 resources?", message);
         Assert.Contains(Palette12, message);
-        Assert.Equal(true, Service.LastConfirmRemovals);
+        Assert.Equal(true, Generation.LastConfirmRemovals);
         Assert.False(_context.Tree.TryGetNode(Palette12, out _));
     }
 
@@ -364,14 +366,14 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
         var closed = false;
         vm.Closed += (_, _) => closed = true;
         var before = _context.Snapshot();
-        var generateCount = Service.GenerateCount;
+        var generateCount = Generation.GenerateCount;
         _interactions.Answers.Enqueue(PromptResult.Reject);
 
         await vm.TryAcceptCommand.ExecuteAsync(null);
 
         Assert.False(closed);
         Assert.Equal(1, _interactions.PromptCount);
-        Assert.Equal(generateCount, Service.GenerateCount);
+        Assert.Equal(generateCount, Generation.GenerateCount);
         _context.AssertUnchanged(before);
         Assert.True(_context.Tree.TryGetNode(Palette12, out _));
         Assert.True(vm.TryAcceptCommand.CanExecute(null));
@@ -401,6 +403,56 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
         Assert.Same(regenerated.Item, editor.Resource);
         Assert.Same(editor, editors.ActiveEditor);
         Assert.False(((Palette)regenerated.Item).ZeroIndexTransparent);
+    }
+
+    [Fact]
+    public async Task Regenerate_EditorOnChangedPalette_StaysAtTabIndexAndActive()
+    {
+        await GenerateFirstAsync();
+        var editors = CreateEditors();
+        var palette = Item(General0);
+        await editors.ActivateEditor(Item("/Rom"));
+        await editors.ActivateEditor(palette);
+        var stale = editors.ActiveEditor!;
+        await editors.ActivateEditor(Item(Palette12));
+        editors.ActiveEditor = stale;
+        var (first, last) = (editors.Editors[0], editors.Editors[2]);
+        MakePalettesOpaque();
+
+        await RegenerateAsync(editors);
+
+        var regenerated = Item(General0);
+        Assert.NotSame(palette, regenerated);
+        Assert.Equal(3, editors.Editors.Count);
+        Assert.Same(first, editors.Editors[0]);
+        Assert.Same(regenerated, editors.Editors[1].Resource);
+        Assert.Same(editors.Editors[1], editors.ActiveEditor);
+        Assert.Same(Item(Palette12), editors.Editors[2].Resource);
+        Assert.NotSame(last, editors.Editors[2]);
+    }
+
+    [Fact]
+    public async Task Regenerate_EditorTheRunSwapsIn_IsReopenedAfterTheRun()
+    {
+        await GenerateFirstAsync();
+        var editors = CreateEditors();
+        await editors.ActivateEditor(Item(General0));
+        var swappedIn = new List<ResourceEditorBaseViewModel>();
+        editors.Editors.CollectionChanged += (_, e) =>
+        {
+            if (e.Action == NotifyCollectionChangedAction.Replace)
+                swappedIn.AddRange(e.NewItems!.Cast<ResourceEditorBaseViewModel>());
+        };
+        MakePalettesOpaque();
+
+        await RegenerateAsync(editors);
+
+        var editor = Assert.Single(editors.Editors);
+        Assert.Equal(2, swappedIn.Count);
+        Assert.NotSame(swappedIn[0], editor);
+        Assert.Same(swappedIn[1], editor);
+        Assert.Same(Item(General0), editor.Resource);
+        Assert.Same(editor, editors.ActiveEditor);
     }
 
     private IProjectResource Item(string key)
@@ -483,14 +535,14 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
         var closed = false;
         vm.Closed += (_, _) => closed = true;
         var before = _context.Snapshot();
-        var generateCount = Service.GenerateCount;
+        var generateCount = Generation.GenerateCount;
         _interactions.Answers.Enqueue(PromptResult.Cancel);
 
         await vm.TryAcceptCommand.ExecuteAsync(null);
 
         Assert.False(closed);
         Assert.Equal("'General 0' has been modified and will be closed by regeneration. Save changes?", Assert.Single(_interactions.Messages));
-        Assert.Equal(generateCount, Service.GenerateCount);
+        Assert.Equal(generateCount, Generation.GenerateCount);
         _context.AssertUnchanged(before);
         Assert.True(editor.IsModified);
     }
@@ -501,7 +553,7 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
         var (vm, editor) = await PreviewWithModifiedEditorAsync();
         var closed = false;
         vm.Closed += (_, _) => closed = true;
-        var generateCount = Service.GenerateCount;
+        var generateCount = Generation.GenerateCount;
         _interactions.Answers.Enqueue(PromptResult.Reject);
 
         await vm.TryAcceptCommand.ExecuteAsync(null);
@@ -509,7 +561,7 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
         Assert.True(closed);
         Assert.False(editor.IsModified);
         Assert.Equal(0, editor.SaveCount);
-        Assert.Equal(generateCount + 1, Service.GenerateCount);
+        Assert.Equal(generateCount + 1, Generation.GenerateCount);
         Assert.False(((Palette)Item(General0)).ZeroIndexTransparent);
     }
 
@@ -519,14 +571,14 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
         var (vm, editor) = await PreviewWithModifiedEditorAsync();
         var closed = false;
         vm.Closed += (_, _) => closed = true;
-        var generateCount = Service.GenerateCount;
+        var generateCount = Generation.GenerateCount;
         _interactions.Answers.Enqueue(PromptResult.Accept);
 
         await vm.TryAcceptCommand.ExecuteAsync(null);
 
         Assert.False(closed);
         Assert.Equal(1, editor.SaveCount);
-        Assert.Equal(generateCount, Service.GenerateCount);
+        Assert.Equal(generateCount, Generation.GenerateCount);
         Assert.True(vm.HasPreview);
         Assert.Equal("kept edited", Assert.Single(vm.FilteredOutputs, x => x.Key == General0).Change);
         Assert.True(vm.TryAcceptCommand.CanExecute(null));
@@ -551,6 +603,24 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Regenerate_ModifiedEditorOfChainedCompressedData_Prompted()
+    {
+        await GenerateFirstAsync();
+        await _context.AddCompressedChainAsync("/Generated/Tilesets/Compressed/General Tiles");
+        await _context.ReopenAsync(FireRedShapedData.RepointPrimaryTilesNested);
+        var editors = CreateEditors();
+        var editor = new TestEditor(Item("/Z/C3"), "C3", () => { }) { IsModified = true };
+        editors.Editors.Add(editor);
+        _interactions.Answers.Enqueue(PromptResult.Reject);
+
+        await RegenerateAsync(editors);
+
+        Assert.Equal("'C3' has been modified and will be closed by regeneration. Save changes?", Assert.Single(_interactions.Messages));
+        Assert.False(editor.IsModified);
+        Assert.DoesNotContain(editor, editors.Editors);
+    }
+
+    [Fact]
     public async Task Regenerate_SavedThenCancelled_RefreshesPreviewWithoutRegenerating()
     {
         EditorsViewModel editors = null!;
@@ -567,7 +637,7 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
         Assert.True(_context.Tree.TryGetNode(General0, out var node));
         var savedFile = node.DiskLocation!;
         var before = _context.Snapshot();
-        var generateCount = Service.GenerateCount;
+        var generateCount = Generation.GenerateCount;
         _interactions.Answers.Enqueue(PromptResult.Accept);
         _interactions.Answers.Enqueue(PromptResult.Cancel);
 
@@ -577,7 +647,7 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
         Assert.Equal(2, _interactions.PromptCount);
         Assert.Equal(1, saved.SaveCount);
         Assert.True(cancelled.IsModified);
-        Assert.Equal(generateCount, Service.GenerateCount);
+        Assert.Equal(generateCount, Generation.GenerateCount);
         Assert.NotEqual(before[savedFile], File.ReadAllBytes(savedFile));
         before.Remove(savedFile);
         Assert.All(before, x => Assert.Equal(x.Value, File.ReadAllBytes(x.Key)));
@@ -596,8 +666,8 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
         Assert.True((await Service.AddResourceAsync(_context.Tree.Root, new FileDataSource("Ff4", ff4File))).HasSucceeded);
         var definitionFile = Path.Combine(_context.Definitions.Directory, "Ff4Synthetic.table.xml");
         var definition = _context.Definitions.Load("Ff4Synthetic.table.xml").AsSuccess.Result;
-        var plan = Service.PlanGeneration(_context.Tree, "/Ff4", definition, "/Monsters").AsSuccess.Result;
-        Assert.True((await Service.GenerateResourcesAsync(_context.Tree, plan)).HasSucceeded);
+        var plan = Generation.PlanGeneration(_context.Tree, "/Ff4", definition, "/Monsters").AsSuccess.Result;
+        Assert.True((await Generation.GenerateResourcesAsync(_context.Tree, plan)).HasSucceeded);
         Service.CloseProjects();
         var rom = File.ReadAllBytes(ff4File);
         Ff4ShapedData.SetMonsterPalette(rom, 0, 3);
@@ -652,7 +722,7 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
         public override void Redo() { }
     }
 
-    private sealed class GatedProjectService(IProjectSerializerFactory serializerFactory) : ProjectService(serializerFactory)
+    private sealed class GatedGenerationService(ProjectWorkspace workspace) : ResourceGenerationService(workspace)
     {
         public ManualResetEventSlim Gate { get; } = new(true);
         public bool? LastSaveProject { get; private set; }

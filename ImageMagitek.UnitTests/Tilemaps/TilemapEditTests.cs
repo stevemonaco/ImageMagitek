@@ -82,17 +82,28 @@ public sealed class TilemapEditTests : IDisposable
     private void WriteDefaultGbaMap() =>
         WriteRom(Gba(1), Gba(2), Gba(3), Gba(4), Gba(5), Gba(6), Gba(7), Gba(8));
 
+    private static ElementCopy CopyOf(ArrangerElement element)
+    {
+        var arranger = new ScatteredArranger("source", PixelColorType.Indexed, ElementLayout.Tiled, 1, 1, 8, 8);
+        arranger.SetElement(element, 0, 0);
+        return arranger.CopyElements();
+    }
+
+    private static MagitekResult PasteCell(TilemapPlotter plotter, ElementCopy copy, int x, int y) =>
+        plotter.Paste(copy, Point.Empty, new Point(x, y), 1, 1);
+
     [Fact]
     public void WriteEntries_MovedCell_ChangesOnlyTargetEntryBytes()
     {
         WriteDefaultGbaMap();
         using var tilemap = Create(_gba);
         var before = ReadRom();
-        var working = tilemap.CloneArranger();
+        var view = tilemap.CreateWorkingView();
+        var plotter = new TilemapPlotter(tilemap, view.Grid);
 
-        working.SetElement(working.GetElement(0, 0), 3, 1);
+        Assert.True(PasteCell(plotter, view.CopyElements(0, 0, 1, 1), 3, 1).HasSucceeded);
 
-        Assert.True(tilemap.WriteEntries(working).HasSucceeded);
+        Assert.True(tilemap.WriteEntries(view.Grid).HasSucceeded);
         Assert.Equal(WithEntry(before, 3, 1, Gba(1)), ReadRom());
         Assert.Equal(TileOffset + TileBytes, tilemap.GetElement(3, 1)!.Value.SourceAddress.ByteOffset);
     }
@@ -103,12 +114,11 @@ public sealed class TilemapEditTests : IDisposable
         WriteDefaultGbaMap();
         using var tilemap = Create(_gba);
         var before = ReadRom();
-        var working = tilemap.CloneArranger();
+        var grid = tilemap.CreateGrid();
 
-        var cell = tilemap.ToCellElement(TileElement(9, _slot1), working.GetElement(2, 0));
-        working.SetElement(cell.AsSuccess.Result, 2, 0);
+        Assert.True(PasteCell(new TilemapPlotter(tilemap, grid), CopyOf(TileElement(9, _slot1)), 2, 0).HasSucceeded);
 
-        Assert.True(tilemap.WriteEntries(working).HasSucceeded);
+        Assert.True(tilemap.WriteEntries(grid).HasSucceeded);
         Assert.Equal(WithEntry(before, 2, 0, Gba(9, palette: 1)), ReadRom());
     }
 
@@ -118,11 +128,11 @@ public sealed class TilemapEditTests : IDisposable
         WriteRom(Snes(1, priority: true), Snes(2), Snes(3), Snes(4), Snes(5), Snes(6), Snes(7), Snes(8));
         using var tilemap = Create(_snes);
         var before = ReadRom();
-        var working = tilemap.CloneArranger();
+        var grid = tilemap.CreateGrid();
 
-        working.SetElement(TileElement(1, _slot1), 0, 0);
+        Assert.True(new TilemapPlotter(tilemap, grid).ApplyPalette(0, 0, _slot1));
 
-        Assert.True(tilemap.WriteEntries(working).HasSucceeded);
+        Assert.True(tilemap.WriteEntries(grid).HasSucceeded);
         Assert.Equal(WithEntry(before, 0, 0, Snes(1, palette: 1, priority: true)), ReadRom());
     }
 
@@ -132,11 +142,11 @@ public sealed class TilemapEditTests : IDisposable
         WriteRom(Snes(1, priority: true), Snes(2), Snes(3), Snes(4), Snes(5), Snes(6), Snes(7), Snes(8));
         using var tilemap = Create(_snes);
         var before = ReadRom();
-        var working = tilemap.CloneArranger();
+        var grid = tilemap.CreateGrid();
 
-        working.TryMirrorElement(0, 0, MirrorOperation.Horizontal);
+        Assert.True(new TilemapPlotter(tilemap, grid).Mirror(0, 0, MirrorOperation.Horizontal).HasSucceeded);
 
-        Assert.True(tilemap.WriteEntries(working).HasSucceeded);
+        Assert.True(tilemap.WriteEntries(grid).HasSucceeded);
         Assert.Equal(WithEntry(before, 0, 0, Snes(1, priority: true, hflip: true)), ReadRom());
     }
 
@@ -146,11 +156,11 @@ public sealed class TilemapEditTests : IDisposable
         WriteRom(Gba(1), Gba(2), Gba(3), Gba(4), Gba(5, palette: 1, hflip: true), Gba(6), Gba(7), Gba(8));
         using var tilemap = Create(_gba, emptyTile: 15);
         var before = ReadRom();
-        var working = tilemap.CloneArranger();
+        var grid = tilemap.CreateGrid();
 
-        working.ResetElement(0, 1);
+        Assert.True(new TilemapPlotter(tilemap, grid).Erase(new Rectangle(0, 1, 1, 1)));
 
-        Assert.True(tilemap.WriteEntries(working).HasSucceeded);
+        Assert.True(tilemap.WriteEntries(grid).HasSucceeded);
         Assert.Equal(WithEntry(before, 0, 1, Gba(15)), ReadRom());
     }
 
@@ -164,44 +174,82 @@ public sealed class TilemapEditTests : IDisposable
         _rom.DataWritten += (_, _) => written++;
 
         Assert.Null(tilemap.GetElement(1, 0));
-        Assert.True(tilemap.WriteEntries(tilemap.CloneArranger()).HasSucceeded);
+        Assert.True(tilemap.WriteEntries(tilemap.CreateGrid()).HasSucceeded);
         Assert.Equal(before, ReadRom());
         Assert.Equal(0, written);
     }
 
     [Fact]
-    public void WriteEntries_PaletteInNoSlot_FailsAndWritesNothing()
+    public void WriteEntries_KeepsMapPriorityAndUnknownBits()
+    {
+        var tileOnly = new MapFormat("Tile Only", 16, Endian.Little, new MapField(0, 10));
+        WriteRom(Snes(1, priority: true), [0x02, 0xFC], Gba(3), Gba(4), Gba(5), Gba(6), Gba(7), Gba(8));
+        using var snes = Create(_snes);
+        var snesGrid = snes.CreateGrid();
+        var snesView = snes.CreateWorkingView();
+        Assert.True(PasteCell(new TilemapPlotter(snes, snesGrid), snesView.CopyElements(0, 0, 1, 1), 2, 0).HasSucceeded);
+        Assert.True(snes.WriteEntries(snesGrid).HasSucceeded);
+        Assert.Equal(Snes(1), ReadRom()[(MapOffset + 4)..(MapOffset + 6)]);
+
+        using var tilemap = Create(tileOnly);
+        var view = tilemap.CreateWorkingView();
+        Assert.True(PasteCell(new TilemapPlotter(tilemap, view.Grid), view.CopyElements(0, 0, 1, 1), 1, 0).HasSucceeded);
+        Assert.True(tilemap.WriteEntries(view.Grid).HasSucceeded);
+        Assert.Equal(new byte[] { 0x01, 0xFC }, ReadRom()[(MapOffset + 2)..(MapOffset + 4)]);
+    }
+
+    [Fact]
+    public void WriteEntries_SizeMismatch_FailsAndWritesNothing()
     {
         WriteDefaultGbaMap();
         using var tilemap = Create(_gba);
+        using var smaller = new TilemapArranger("smaller", _rom, MapOffset, _gba, MapScreenLayout.Linear, 2, 2, _rom, TileOffset, "GBA 4bpp", 0,
+            [_slot0], _codecFactory);
         var before = ReadRom();
-        var working = tilemap.CloneArranger();
 
-        working.SetElement(working.GetElement(0, 0), 3, 1);
-        working.SetElement(TileElement(2, _unslotted), 1, 1);
+        var result = tilemap.WriteEntries(smaller.CreateGrid());
 
-        var result = tilemap.WriteEntries(working);
-
-        Assert.True(result.HasFailed);
-        Assert.Contains("(1, 1)", result.AsError.Reason);
+        Assert.Equal("Tilemap 'tilemap' is 4x2 cells, not 2x2", result.AsError.Reason);
         Assert.Equal(before, ReadRom());
     }
 
     [Fact]
-    public void CanWriteEntries_RefusedCell_FailsAndWritesNothing()
+    public void WriteEntries_CellPastMapData_FailsAndWritesNothing()
     {
         WriteDefaultGbaMap();
-        using var tilemap = Create(_gba);
-        var before = ReadRom();
-        var working = tilemap.CloneArranger();
+        using var map = new MemoryDataSource("short map");
+        map.Write([.. Gba(1), .. Gba(2), .. Gba(3)]);
+        using var tilemap = new TilemapArranger("tilemap", map, 0, _gba, MapScreenLayout.Linear, 2, 2, _rom, TileOffset, "GBA 4bpp", 0,
+            [_slot0], _codecFactory);
+        var before = map.Read(BitAddress.Zero, 6 * 8);
+        var grid = tilemap.CreateGrid();
+        var plotter = new TilemapPlotter(tilemap, grid);
 
-        working.SetElement(TileElement(2, _unslotted), 1, 1);
+        Assert.Null(grid[1, 1]);
+        Assert.True(plotter.Erase(new Rectangle(0, 0, 1, 1)));
+        Assert.True(plotter.Stamp(TileBrush.Single(4), 1, 1));
 
-        var result = tilemap.CanWriteEntries(working);
+        var check = tilemap.CanWriteEntries(grid);
+        var result = tilemap.WriteEntries(grid);
 
-        Assert.True(result.HasFailed);
-        Assert.Contains("(1, 1)", result.AsError.Reason);
-        Assert.Equal(before, ReadRom());
+        Assert.Equal("Cell (1, 1) of tilemap 'tilemap' has no entry in the map data", check.AsError.Reason);
+        Assert.Equal(check.AsError.Reason, result.AsError.Reason);
+        Assert.Equal(before, map.Read(BitAddress.Zero, 6 * 8));
+    }
+
+    [Fact]
+    public void WriteEntries_ReadOnlyMap_Fails()
+    {
+        WriteDefaultGbaMap();
+        using var map = new MemoryDataSource("map");
+        map.Write(new byte[MapBytes]);
+        using var compressed = new CompressedDataSource("packed", map, 0, "GBA LZ77", new ImageMagitek.Compression.CompressorFactory());
+        using var tilemap = new TilemapArranger("tilemap", compressed, 0, _gba, MapScreenLayout.Linear, Width, Height, _rom, TileOffset, "GBA 4bpp", 0,
+            [_slot0], _codecFactory);
+
+        var result = tilemap.WriteEntries(tilemap.CreateGrid());
+
+        Assert.StartsWith("The map of tilemap 'tilemap' is read-only because it", result.AsError.Reason);
     }
 
     [Fact]
@@ -212,7 +260,7 @@ public sealed class TilemapEditTests : IDisposable
         var written = 0;
         _rom.DataWritten += (_, _) => written++;
 
-        Assert.True(tilemap.WriteEntries(tilemap.CloneArranger()).HasSucceeded);
+        Assert.True(tilemap.WriteEntries(tilemap.CreateGrid()).HasSucceeded);
         Assert.Equal(0, written);
     }
 
@@ -221,14 +269,15 @@ public sealed class TilemapEditTests : IDisposable
     {
         WriteDefaultGbaMap();
         using var tilemap = Create(_gba);
-        var working = tilemap.CloneArranger();
+        var grid = tilemap.CreateGrid();
+        var plotter = new TilemapPlotter(tilemap, grid);
         var written = 0;
         _rom.DataWritten += (_, _) => written++;
 
-        working.ResetElement(0, 0);
-        working.TryMirrorElement(1, 0, MirrorOperation.Vertical);
+        plotter.Erase(new Rectangle(0, 0, 1, 1));
+        plotter.Mirror(1, 0, MirrorOperation.Vertical);
 
-        Assert.True(tilemap.WriteEntries(working).HasSucceeded);
+        Assert.True(tilemap.WriteEntries(grid).HasSucceeded);
         Assert.Equal(1, written);
     }
 
@@ -325,30 +374,138 @@ public sealed class TilemapEditTests : IDisposable
     }
 
     [Fact]
-    public void ToCellElement_PaletteInNoSlot_UsesDestinationSlot()
+    public void ToEntry_PaletteInNoSlot_UsesDestinationSlot()
     {
         WriteRom(Gba(1), Gba(2, palette: 1), Gba(3), Gba(4), Gba(5), Gba(6), Gba(7), Gba(8));
         using var tilemap = Create(_gba);
-        var working = tilemap.CloneArranger();
+        var grid = tilemap.CreateGrid();
 
-        var intoSlot1 = tilemap.ToCellElement(TileElement(9, _unslotted), working.GetElement(1, 0)).AsSuccess.Result;
-        var intoEmpty = tilemap.ToCellElement(TileElement(9, _unslotted), null).AsSuccess.Result;
-        var slotted = TileElement(9, _slot1);
+        var intoSlot1 = tilemap.ToEntry(TileElement(9, _unslotted), grid[1, 0]).AsSuccess.Result;
+        var intoEmpty = tilemap.ToEntry(TileElement(9, _unslotted), null).AsSuccess.Result;
+        var slotted = tilemap.ToEntry(TileElement(9, _slot1), grid[0, 0]).AsSuccess.Result;
 
-        Assert.Same(_slot1, ((IIndexedCodec)intoSlot1.Codec).Palette);
-        Assert.Same(_slot0, ((IIndexedCodec)intoEmpty.Codec).Palette);
-        Assert.Same(slotted.Codec, tilemap.ToCellElement(slotted, null).AsSuccess.Result.Codec);
+        Assert.Equal(new MapEntry(9, 1, false, false, false), intoSlot1);
+        Assert.Equal(new MapEntry(9, 0, false, false, false), intoEmpty);
+        Assert.Equal(new MapEntry(9, 1, false, false, false), slotted);
     }
 
     [Fact]
-    public void ToCellElement_ForeignElement_RefusesWithReason()
+    public void Paste_PaletteInNoSlot_UsesDestinationSlot()
+    {
+        WriteRom(Gba(1), Gba(2, palette: 1), Gba(3), Gba(4), Gba(5), Gba(6), Gba(7), Gba(8));
+        using var tilemap = Create(_gba);
+        var grid = tilemap.CreateGrid();
+
+        Assert.True(PasteCell(new TilemapPlotter(tilemap, grid), CopyOf(TileElement(9, _unslotted).WithMirror(MirrorOperation.Horizontal)), 1, 0).HasSucceeded);
+
+        Assert.Equal(new MapEntry(9, 1, true, false, false), grid[1, 0]);
+    }
+
+    [Fact]
+    public void Paste_ForeignElement_RefusesWithReason()
     {
         WriteDefaultGbaMap();
         using var tilemap = Create(_gba);
+        var grid = tilemap.CreateGrid();
+        var copy = new ScatteredArranger("source", PixelColorType.Indexed, ElementLayout.Tiled, 2, 1, 8, 8);
+        copy.SetElement(TileElement(5, _slot0), 0, 0);
+        copy.SetElement(TileElement(1, _slot0, codecName: "SNES 4bpp"), 1, 0);
 
-        var result = tilemap.ToCellElement(TileElement(1, _slot0, codecName: "SNES 4bpp"), null);
+        var result = new TilemapPlotter(tilemap, grid).Paste(copy.CopyElements(), Point.Empty, Point.Empty, 2, 1);
 
-        Assert.Contains("not the tile set's codec", result.AsError.Reason);
+        Assert.Equal("Cannot paste into tilemap 'tilemap': element at (1, 0) uses codec 'SNES 4bpp', not the tile set's codec 'GBA 4bpp'", result.AsError.Reason);
+        Assert.Equal(new MapEntry(1, 0, false, false, false), grid[0, 0]);
+    }
+
+    [Fact]
+    public void Paste_TooWide_FailsWithCopierReason()
+    {
+        WriteDefaultGbaMap();
+        using var tilemap = Create(_gba);
+        var view = tilemap.CreateWorkingView();
+
+        var result = new TilemapPlotter(tilemap, view.Grid).Paste(view.CopyElements(), Point.Empty, new Point(1, 0), Width, 1);
+
+        Assert.Contains("is insufficient to copy", result.AsError.Reason);
+    }
+
+    [Fact]
+    public void Paste_FromSameTilemap_KeepsSlotsSharingPalette()
+    {
+        WriteRom(Gba(1, palette: 2, vflip: true), Gba(2), Gba(3), Gba(4), Gba(5), Gba(6), Gba(7), Gba(8));
+        using var tilemap = new TilemapArranger("tilemap", _rom, MapOffset, _gba, MapScreenLayout.Linear, Width, Height, _rom, TileOffset,
+            "GBA 4bpp", 0, [_slot0, _slot1, _slot1], _codecFactory);
+        var before = ReadRom();
+        var view = tilemap.CreateWorkingView();
+        var plotter = new TilemapPlotter(tilemap, view.Grid);
+
+        Assert.True(PasteCell(plotter, view.CopyElements(0, 0, 1, 1), 1, 0).HasSucceeded);
+        Assert.True(PasteCell(plotter, tilemap.Bake().CopyElements(0, 0, 1, 1), 2, 0).HasSucceeded);
+
+        Assert.Equal(new MapEntry(1, 2, false, true, false), view.Grid[1, 0]);
+        Assert.Equal(new MapEntry(1, 1, false, true, false), view.Grid[2, 0]);
+        Assert.True(tilemap.WriteEntries(view.Grid).HasSucceeded);
+        Assert.Equal(WithEntry(WithEntry(before, 1, 0, Gba(1, palette: 2, vflip: true)), 2, 0, Gba(1, palette: 1, vflip: true)), ReadRom());
+    }
+
+    [Fact]
+    public void Paste_CopyFromAnotherTilemap_ConvertsElements()
+    {
+        WriteRom(Gba(1, palette: 2), Gba(2), Gba(3), Gba(4), Gba(5), Gba(6), Gba(7), Gba(8));
+        var slots = new Palette?[] { _slot0, _slot1, _slot1 };
+        using var tilemap = new TilemapArranger("tilemap", _rom, MapOffset, _gba, MapScreenLayout.Linear, Width, Height, _rom, TileOffset,
+            "GBA 4bpp", 0, slots, _codecFactory);
+        using var other = new TilemapArranger("other", _rom, MapOffset, _gba, MapScreenLayout.Linear, Width, Height, _rom, TileOffset,
+            "GBA 4bpp", 0, slots, _codecFactory);
+        var grid = tilemap.CreateGrid();
+
+        Assert.True(PasteCell(new TilemapPlotter(tilemap, grid), other.CreateWorkingView().CopyElements(0, 0, 1, 1), 1, 0).HasSucceeded);
+
+        Assert.Equal(1, grid[1, 0]!.Value.Palette);
+    }
+
+    [Fact]
+    public void ApplyPalette_PrefersCurrentSlot()
+    {
+        WriteRom(Gba(1, palette: 2), Gba(2), Gba(3), Gba(4), Gba(5), Gba(6), Gba(7), Gba(8));
+        using var tilemap = new TilemapArranger("tilemap", _rom, MapOffset, _gba, MapScreenLayout.Linear, Width, Height, _rom, TileOffset,
+            "GBA 4bpp", 0, [_slot0, _slot1, _slot1], _codecFactory);
+        var grid = tilemap.CreateGrid();
+        var plotter = new TilemapPlotter(tilemap, grid);
+
+        Assert.False(plotter.ApplyPalette(0, 0, _slot1));
+        Assert.True(plotter.ApplyPalette(1, 0, _slot1));
+        Assert.False(plotter.ApplyPalette(2, 0, _unslotted));
+
+        Assert.Equal(2, grid[0, 0]!.Value.Palette);
+        Assert.Equal(1, grid[1, 0]!.Value.Palette);
+        Assert.Equal(0, grid[2, 0]!.Value.Palette);
+    }
+
+    [Fact]
+    public void Mirror_TogglesEntryFlips()
+    {
+        WriteRom(Gba(1, hflip: true), Gba(500), Gba(3), Gba(4), Gba(5), Gba(6), Gba(7), Gba(8));
+        using var tilemap = Create(_gba);
+        var grid = tilemap.CreateGrid();
+        var plotter = new TilemapPlotter(tilemap, grid);
+
+        Assert.True(plotter.Mirror(0, 0, MirrorOperation.Both).HasSucceeded);
+        Assert.Equal(new MapEntry(1, 0, false, true, false), grid[0, 0]);
+        Assert.True(plotter.Mirror(0, 0, MirrorOperation.Vertical).HasSucceeded);
+        Assert.Equal(new MapEntry(1, 0, false, false, false), grid[0, 0]);
+        Assert.True(plotter.Mirror(1, 0, MirrorOperation.Horizontal).HasFailed);
+    }
+
+    [Fact]
+    public void Mirror_FormatWithoutFlipField_Fails()
+    {
+        WriteDefaultGbaMap();
+        using var tilemap = Create(new MapFormat("No Flip", 16, Endian.Little, new MapField(0, 10)));
+
+        var result = new TilemapPlotter(tilemap, tilemap.CreateGrid()).Mirror(0, 0, MirrorOperation.Horizontal);
+
+        Assert.Equal("Map format 'No Flip' has no horizontal flip field", result.AsError.Reason);
     }
 
     [Fact]
@@ -378,7 +535,7 @@ public sealed class TilemapEditTests : IDisposable
     {
         WriteRom(Gba(1), Gba(1, hflip: true), Gba(1), Gba(2), Gba(3), Gba(4), Gba(5), Gba(6));
         using var tilemap = Create(_gba);
-        var working = tilemap.CloneArranger();
+        var working = tilemap.CreateWorkingView();
         var current = new IndexedImage(working);
         var result = new IndexedImage(working);
         var drawn = (byte)((current.GetPixel(0, 0) + 1) % 16);
@@ -400,7 +557,7 @@ public sealed class TilemapEditTests : IDisposable
         WriteRom(Gba(1), Gba(1, hflip: true), Gba(1), Gba(2), Gba(3), Gba(4), Gba(5), Gba(6));
         using var tilemap = Create(_gba);
         var before = ReadRom();
-        var working = tilemap.CloneArranger();
+        var working = tilemap.CreateWorkingView();
         var current = new IndexedImage(working);
         var result = new IndexedImage(working);
 
@@ -415,7 +572,7 @@ public sealed class TilemapEditTests : IDisposable
         Assert.Equal(before, ReadRom());
     }
 
-    private DecodedImage RenderColors(Arranger arranger, Func<int, int, byte, byte>? edit = null)
+    private DecodedImage RenderColors(IArrangerView arranger, Func<int, int, byte, byte>? edit = null)
     {
         var image = new IndexedImage(arranger);
         var pixels = new ColorRgba32[image.Width * image.Height];

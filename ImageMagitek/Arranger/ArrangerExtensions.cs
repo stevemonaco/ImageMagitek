@@ -14,7 +14,7 @@ public static class ArrangerExtensions
     /// </summary>
     /// <param name="arranger">Source to copy from</param>
     /// <returns></returns>
-    public static ElementCopy CopyElements(this Arranger arranger)
+    public static ElementCopy CopyElements(this IArrangerView arranger)
     {
         int width = arranger.ArrangerElementSize.Width;
         int height = arranger.ArrangerElementSize.Height;
@@ -29,9 +29,12 @@ public static class ArrangerExtensions
     /// <param name="y">y-coordinate in element coordinates</param>
     /// <param name="copyWidth">Width of copy in element coordinates</param>
     /// <param name="copyHeight">Height of copy in element coordinates</param>
-    /// <returns></returns>
-    public static ElementCopy CopyElements(this Arranger arranger, int x, int y, int copyWidth, int copyHeight)
+    /// <returns>A <see cref="TilemapElementCopy"/> that also carries the entries when <paramref name="arranger"/> is a <see cref="Tilemaps.TilemapView"/></returns>
+    public static ElementCopy CopyElements(this IArrangerView arranger, int x, int y, int copyWidth, int copyHeight)
     {
+        if (arranger is Tilemaps.TilemapView view)
+            return new TilemapElementCopy(view, x, y, copyWidth, copyHeight);
+
         return new ElementCopy(arranger, x, y, copyWidth, copyHeight);
     }
 
@@ -40,7 +43,7 @@ public static class ArrangerExtensions
     /// </summary>
     /// <param name="arranger">Source to copy from</param>
     /// <returns></returns>
-    public static IndexedPixelCopy CopyPixelsIndexed(this Arranger arranger)
+    public static IndexedPixelCopy CopyPixelsIndexed(this IArrangerView arranger)
     {
         int width = arranger.ArrangerPixelSize.Width;
         int height = arranger.ArrangerPixelSize.Height;
@@ -56,7 +59,7 @@ public static class ArrangerExtensions
     /// <param name="width">Width of copy in pixel coordinates</param>
     /// <param name="height">Height of copy in pixel coordinates</param>
     /// <returns></returns>
-    public static IndexedPixelCopy CopyPixelsIndexed(this Arranger arranger, int x, int y, int width, int height)
+    public static IndexedPixelCopy CopyPixelsIndexed(this IArrangerView arranger, int x, int y, int width, int height)
     {
         if (arranger.ColorType == PixelColorType.Indexed)
         {
@@ -73,7 +76,7 @@ public static class ArrangerExtensions
     /// </summary>
     /// <param name="arranger">Source to copy from</param>
     /// <returns></returns>
-    public static DirectPixelCopy CopyPixelsDirect(this Arranger arranger)
+    public static DirectPixelCopy CopyPixelsDirect(this IArrangerView arranger)
     {
         int width = arranger.ArrangerPixelSize.Width;
         int height = arranger.ArrangerPixelSize.Height;
@@ -89,7 +92,7 @@ public static class ArrangerExtensions
     /// <param name="width">Width of copy in pixel coordinates</param>
     /// <param name="height">Height of copy in pixel coordinates</param>
     /// <returns></returns>
-    public static DirectPixelCopy CopyPixelsDirect(this Arranger arranger, int x, int y, int width, int height)
+    public static DirectPixelCopy CopyPixelsDirect(this IArrangerView arranger, int x, int y, int width, int height)
     {
         if (arranger.ColorType == PixelColorType.Indexed)
         {
@@ -266,14 +269,14 @@ public static class ArrangerExtensions
     /// <summary>
     /// True when any element uses a codec that cannot encode or reads a read-only data source, so the arranger's pixels cannot be saved
     /// </summary>
-    public static bool IsReadOnly(this Arranger arranger) => arranger.GetReadOnlyReason() is not null;
+    public static bool IsReadOnly(this IArrangerView arranger) => arranger.GetReadOnlyReason() is not null;
 
     /// <summary>
     /// Why the arranger's pixels are read-only, naming the first offending element's codec or data file, or null when it is writable.
-    /// A tilemap is also read-only when its tile source is; whether its map entries can be written is <see cref="TilemapArranger.MapReadOnlyReason"/>.
+    /// A tilemap or its working view is also read-only when its tile source is; whether its map entries can be written is <see cref="TilemapArranger.MapReadOnlyReason"/>.
     /// </summary>
     /// <returns>A reason that completes "is read-only because it ..."</returns>
-    public static string? GetReadOnlyReason(this Arranger arranger)
+    public static string? GetReadOnlyReason(this IArrangerView arranger)
     {
         foreach (var element in arranger.EnumerateElements().OfType<ArrangerElement>())
         {
@@ -284,8 +287,15 @@ public static class ArrangerExtensions
                 return sourceReason;
         }
 
-        return arranger is TilemapArranger tilemap ? DescribeReadOnlySource(tilemap.TileSource) : null;
+        return FindTilemap(arranger) is { } tilemap ? DescribeReadOnlySource(tilemap.TileSource) : null;
     }
+
+    private static TilemapArranger? FindTilemap(IArrangerView view) => view switch
+    {
+        TilemapArranger tilemap => tilemap,
+        Tilemaps.TilemapView working => working.Tilemap,
+        _ => null
+    };
 
     /// <returns>A reason that completes "is read-only because it ...", or null when the source can be written</returns>
     internal static string? DescribeReadOnlySource(DataSource source) => source switch
@@ -298,9 +308,9 @@ public static class ArrangerExtensions
     /// <summary>
     /// The first missing file among the arranger's element sources and its referenced palettes' sources, or null when none is missing
     /// </summary>
-    public static FileDataSource? FindMissingDataSource(this Arranger arranger)
+    public static FileDataSource? FindMissingDataSource(this IArrangerView arranger)
     {
-        var tilemap = arranger as TilemapArranger;
+        var tilemap = FindTilemap(arranger);
         return arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => (DataSource?)x.Source)
             .Concat(arranger.GetReferencedPalettes().Select(x => x.DataSource))
             .Append(tilemap?.MapSource)
@@ -317,7 +327,7 @@ public static class ArrangerExtensions
     /// <param name="arranger"></param>
     /// <param name="location">Point in pixel coordinates</param>
     /// <returns>Element location in element coordinates</returns>
-    public static Point PointToElementLocation(this Arranger arranger, Point location)
+    public static Point PointToElementLocation(this IArrangerView arranger, Point location)
     {
         if (location.X < 0 || location.X >= arranger.ArrangerPixelSize.Width || location.Y < 0 || location.Y >= arranger.ArrangerPixelSize.Height)
             throw new ArgumentOutOfRangeException($"{nameof(PointToElementLocation)} Location ({location.X}, {location.Y}) is out of range");

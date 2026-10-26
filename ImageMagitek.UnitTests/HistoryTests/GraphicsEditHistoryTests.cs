@@ -5,6 +5,9 @@ using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.PluginSamples;
+using ImageMagitek.Tilemaps;
+using ImageMagitek.UnitTests.Fixtures;
+using ImageMagitek.UnitTests.Tilemaps;
 using ImageMagitek.UnitTests.TestFactories;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
@@ -176,11 +179,37 @@ public class GraphicsEditHistoryTests
     {
         AssertUndoRedo(CreateIndexed(), image =>
         {
-            image.Arranger.SetElement(image.Arranger.GetElement(0, 0), 2, 1);
-            image.Arranger.ResetElement(1, 0);
+            var arranger = (Arranger)image.Arranger;
+            arranger.SetElement(arranger.GetElement(0, 0), 2, 1);
+            arranger.ResetElement(1, 0);
             image.Render();
             return new PlotTilesHistoryAction("Plot Tiles");
         });
+    }
+
+    [Fact]
+    public void Undo_TilemapPaste_RestoresGridSlots()
+    {
+        using var data = new MemoryDataSource("rom");
+        data.Write([0x01, 0x20, 0x02, 0x00, .. Enumerable.Range(0, 4 * 32).Select(i => (byte)i)]);
+        using var tilemap = new TilemapArranger("tilemap", data, 0, MapFormatTests.LoadShippedFormats().Find("GBA Text BG")!, MapScreenLayout.Linear,
+            2, 1, data, 4, "GBA 4bpp", 0, [_palette, _otherPalette, _otherPalette], CodecFixture.Shared.CodecFactory);
+        var view = tilemap.CreateWorkingView();
+        var image = new ArrangerImageAdapter(view);
+        var history = new GraphicsEditHistory(new(), new(), view, _codecFactory);
+
+        Assert.True(new TilemapPlotter(tilemap, view.Grid).Paste(view.CopyElements(0, 0, 1, 1), Point.Empty, new Point(1, 0), 1, 1).HasSucceeded);
+        history.Add(new ElementPasteHistoryAction(), view);
+        Assert.Equal(new MapEntry(1, 2, false, false, false), view.Grid[1, 0]);
+
+        Assert.True(history.Undo(image));
+        Assert.Equal(new MapEntry(2, 0, false, false, false), ((TilemapView)image.Arranger).Grid[1, 0]);
+
+        Assert.True(history.Redo(image));
+        var redone = (TilemapView)image.Arranger;
+        Assert.Equal(new MapEntry(1, 2, false, false, false), redone.Grid[1, 0]);
+        Assert.NotSame(view.Grid, redone.Grid);
+        Assert.Same(view.GetElement(0, 0)!.Value.Codec, redone.GetElement(0, 0)!.Value.Codec);
     }
 
     [Fact]
@@ -208,7 +237,7 @@ public class GraphicsEditHistoryTests
         {
             var rect = new SnappedRectangle(image.Arranger.ArrangerPixelSize, image.Arranger.ElementPixelSize, SnapMode.Element);
             rect.SetBounds(16, 48, 0, 16);
-            GraphicsEditorViewModel.ResetElements(image.Arranger, rect);
+            GraphicsEditorViewModel.ResetElements((Arranger)image.Arranger, rect);
 
             Assert.NotNull(image.Arranger.GetElement(0, 1));
             Assert.Null(image.Arranger.GetElement(1, 1));
@@ -317,7 +346,7 @@ public class GraphicsEditHistoryTests
     {
         AssertUndoRedo(CreateIndexed(), image =>
         {
-            image.Arranger.Resize(2, 1);
+            ((Arranger)image.Arranger).Resize(2, 1);
             image.Reinitialize(image.Arranger);
             return new ResizeArrangerHistoryAction();
         });
@@ -400,14 +429,14 @@ public class GraphicsEditHistoryTests
 
     private static MirrorElementHistoryAction Mirror(ArrangerImageAdapter image, int elementX, int elementY)
     {
-        Assert.True(image.Arranger.TryMirrorElement(elementX, elementY, MirrorOperation.Horizontal).HasSucceeded);
+        Assert.True(((Arranger)image.Arranger).TryMirrorElement(elementX, elementY, MirrorOperation.Horizontal).HasSucceeded);
         image.Render();
         return new MirrorElementHistoryAction();
     }
 
     private static RotateElementHistoryAction Rotate(ArrangerImageAdapter image, int elementX, int elementY)
     {
-        Assert.True(image.Arranger.TryRotateElement(elementX, elementY, RotationOperation.Left).HasSucceeded);
+        Assert.True(((Arranger)image.Arranger).TryRotateElement(elementX, elementY, RotationOperation.Left).HasSucceeded);
         image.Render();
         return new RotateElementHistoryAction();
     }

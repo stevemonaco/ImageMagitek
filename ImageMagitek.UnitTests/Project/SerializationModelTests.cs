@@ -54,10 +54,7 @@ public sealed class SerializationModelTests
             var copy = clone.Invoke(sample, null)!;
             property.SetValue(copy, ModelSamples.Vary(property.GetValue(sample), property.PropertyType));
 
-            if (type == typeof(ScatteredArrangerModel) && property.Name == nameof(ResourceModel.Name))
-                Assert.Equal(sample, copy);
-            else
-                Assert.False(sample.Equals(copy), $"Changing {type.Name}.{property.Name} did not change equality");
+            Assert.False(sample.Equals(copy), $"Changing {type.Name}.{property.Name} did not change equality");
         }
     }
 

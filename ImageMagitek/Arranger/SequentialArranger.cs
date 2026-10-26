@@ -374,24 +374,4 @@ public sealed class SequentialArranger : Arranger
         var layoutElement = EffectiveTileLayout.Pattern.First();
         return ElementGrid[layoutElement.Y, layoutElement.X]?.SourceAddress ?? BitAddress.Zero;
     }
-
-    /// <inheritdoc/>
-    public override IEnumerable<IProjectResource> LinkedResources
-    {
-        get
-        {
-            var set = new HashSet<IProjectResource>();
-
-            foreach (var el in EnumerateElements().OfType<ArrangerElement>())
-            {
-                if (el.Codec is IIndexedCodec codec && codec.Palette is not null)
-                    set.Add(codec.Palette);
-
-                if (el.Source is not null)
-                    set.Add(el.Source);
-            }
-
-            return set;
-        }
-    }
 }

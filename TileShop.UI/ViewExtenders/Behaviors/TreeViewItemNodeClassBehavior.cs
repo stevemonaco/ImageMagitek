@@ -1,34 +1,23 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.Frozen;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using ImageMagitek.Project.Serialization;
 using TileShop.UI.ViewModels;
 
 namespace TileShop.UI.Behaviors;
 
 /// <summary>
 /// Attached behavior that applies a style class to a TreeViewItem based on its DataContext type.
-/// When enabled, monitors DataContext changes and sets a class like "project", "folder", "datafile", "compresseddata", "arranger", "tilemap", "metatileset", "metatilemap", or "palette".
+/// When enabled, monitors DataContext changes and sets "project", "folder", "standalone", or the node's resource kind element name.
 /// </summary>
 public class TreeViewItemNodeClassBehavior
 {
     public static readonly AttachedProperty<bool> IsEnabledProperty =
         AvaloniaProperty.RegisterAttached<TreeViewItemNodeClassBehavior, TreeViewItem, bool>("IsEnabled");
 
-    private static readonly FrozenDictionary<Type, string> _nodeClassMap = new Dictionary<Type, string>
-    {
-        [typeof(ProjectNodeViewModel)] = "project",
-        [typeof(FolderNodeViewModel)] = "folder",
-        [typeof(DataFileNodeViewModel)] = "datafile",
-        [typeof(CompressedDataNodeViewModel)] = "compresseddata",
-        [typeof(StandaloneFileNodeViewModel)] = "standalone",
-        [typeof(ArrangerNodeViewModel)] = "arranger",
-        [typeof(TilemapNodeViewModel)] = "tilemap",
-        [typeof(MetatileSetNodeViewModel)] = "metatileset",
-        [typeof(MetatileMapNodeViewModel)] = "metatilemap",
-        [typeof(PaletteNodeViewModel)] = "palette",
-    }.ToFrozenDictionary();
+    private static readonly string[] _allClasses =
+        ["project", "folder", "standalone", .. ResourceKindRegistry.BuiltIn.Kinds.Select(x => x.ElementName)];
 
     static TreeViewItemNodeClassBehavior()
     {
@@ -64,15 +53,24 @@ public class TreeViewItemNodeClassBehavior
     {
         RemoveAllClasses(item);
 
-        if (item.DataContext is not null && _nodeClassMap.TryGetValue(item.DataContext.GetType(), out var className))
+        if (FindClass(item.DataContext) is { } className)
         {
             item.Classes.Add(className);
         }
     }
 
+    private static string? FindClass(object? dataContext) => dataContext switch
+    {
+        ProjectNodeViewModel => "project",
+        FolderNodeViewModel => "folder",
+        StandaloneFileNodeViewModel => "standalone",
+        ResourceNodeViewModel vm => ResourceKindRegistry.BuiltIn.FindByNode(vm.Node)?.ElementName,
+        _ => null
+    };
+
     private static void RemoveAllClasses(TreeViewItem item)
     {
-        foreach (var className in _nodeClassMap.Values)
+        foreach (var className in _allClasses)
         {
             item.Classes.Remove(className);
         }

@@ -25,7 +25,7 @@ public static class Importer
             return ImportResult.Skipped;
         }
 
-        if (node?.Item is not Arranger { Mode: ArrangerMode.Scattered or ArrangerMode.Tilemap } arranger)
+        if (node?.Item is not IArrangerView arranger || arranger is not (ScatteredArranger or TilemapArranger))
         {
             output.WriteLine("Resource key does not exist or is not a Scattered Arranger or Tilemap");
             return ImportResult.BadResourceKey;
@@ -89,7 +89,7 @@ public static class Importer
             });
     }
 
-    private static bool ReadsReadOnlyFile(Arranger arranger)
+    private static bool ReadsReadOnlyFile(IArrangerView arranger)
     {
         var sources = arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Source);
         if (arranger is TilemapArranger tilemap)

@@ -8,9 +8,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using ImageMagitek.Project;
 using ImageMagitek.Services;
 using ImageMagitek.Services.Stores;
+using ImageMagitek.Tilemaps;
 using Microsoft.Extensions.Logging;
 using TileShop.Shared.Input;
 using TileShop.Shared.Interactions;
@@ -45,8 +48,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     private readonly IProjectService _projectService;
     private readonly ILogger<GraphicsEditorViewModel> _logger;
 
-    public Arranger WorkingArranger { get; private set; }
-    private Arranger _projectArranger;
+    public IArrangerView WorkingArranger { get; private set; }
+    private readonly IArrangerView _projectArranger;
+    private readonly TilemapArranger? _tilemap;
     private ArrangerImageAdapter _imageAdapter = null!;
 
     public ArrangerSkiaBitmap EditorBitmap { get; private set; } = null!;
@@ -120,7 +124,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     public bool IsArrangerMode => EditMode == GraphicsEditMode.Arrange;
     public bool IsTilesMode => EditMode == GraphicsEditMode.Tiles;
     public bool IsDrawMode => EditMode == GraphicsEditMode.Draw;
-    public bool IsTilemap => _projectArranger is TilemapArranger;
+    public bool IsTilemap => _tilemap is not null;
+
+    private TilemapGrid? WorkingGrid => (WorkingArranger as TilemapView)?.Grid;
 
     [ObservableProperty] private SnapMode _snapMode = SnapMode.Element;
     partial void OnSnapModeChanged(SnapMode value)
@@ -171,7 +177,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     public bool IsElementPasteActive => IsElementPasteTarget(Paste?.Copy);
 
     private bool IsElementPasteTarget(ArrangerCopy? copy) =>
-        copy is ElementCopy && IsArrangerMode && IsTiledLayout && WorkingArranger is ScatteredArranger;
+        copy is ElementCopy && IsArrangerMode && IsTiledLayout && HasEditableElements;
+
+    private bool HasEditableElements => WorkingArranger is ScatteredArranger or TilemapView;
 
     [ObservableProperty] private GridSettingsViewModel _gridSettings;
 
@@ -302,17 +310,22 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         OnPropertyChanged(nameof(CanChangeSnapMode));
     }
 
-    public GraphicsEditorViewModel(Arranger arranger, IInteractionService interactionService,
+    /// <param name="arranger">A scattered or sequential arranger, or a tilemap</param>
+    public GraphicsEditorViewModel(IArrangerView arranger, IInteractionService interactionService,
         ICodecService codecService, IColorFactory colorFactory, PaletteStore paletteStore,
         ElementStore elementStore, IProjectService projectService, UserPreferencesStore preferencesStore,
         ILogger<GraphicsEditorViewModel> logger)
-        : base(arranger)
+        : base((IProjectResource)arranger)
     {
         _toolRouter = new(SelectedTool, TemporaryTool, ModifierKeyTool, [.. AlternativeToolKeys, .. TertiaryToolKeys]);
-        WorkingArranger = arranger.Mode is ArrangerMode.Scattered or ArrangerMode.Tilemap ? arranger.CloneArranger() : arranger;
+        _tilemap = arranger as TilemapArranger;
+        WorkingArranger = arranger switch
+        {
+            TilemapArranger tilemap => tilemap.CreateWorkingView(),
+            ScatteredArranger scattered => scattered.CloneArranger(),
+            _ => arranger
+        };
         _projectArranger = arranger;
-        Resource = arranger;
-        OriginatingProjectResource = arranger;
         DisplayName = WorkingArranger.Name ?? "Unnamed Graphics";
 
         _interactions = interactionService;
@@ -327,9 +340,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
         _areSymmetryToolsEnabled = preferencesStore.Preferences.EnableArrangerSymmetryTools;
 
-        CanView = arranger.Mode is ArrangerMode.Sequential or ArrangerMode.Tilemap;
-        CanPlotTiles = arranger is TilemapArranger { MapReadOnlyReason: null };
-        CanArrange = arranger.Mode == ArrangerMode.Scattered || CanPlotTiles;
+        CanView = arranger is SequentialArranger || _tilemap is not null;
+        CanPlotTiles = _tilemap is { MapReadOnlyReason: null };
+        CanArrange = arranger is ScatteredArranger || CanPlotTiles;
         CanAcceptElementPastes = true;
 
         _editMode = CanView ? GraphicsEditMode.View : GraphicsEditMode.Arrange;
@@ -482,9 +495,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     /// </summary>
     public void ReloadFromSource()
     {
-        if (_projectArranger is TilemapArranger tilemap)
+        if (_tilemap is not null)
         {
-            ReplaceWorkingArranger(tilemap.CloneArranger());
+            ReplaceWorkingArranger(_tilemap.CreateWorkingView());
             return;
         }
 
@@ -492,20 +505,37 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         ClearHistory();
     }
 
+    /// <inheritdoc/>
+    public override bool DependsOn(IReadOnlySet<IProjectResource> resources) =>
+        base.DependsOn(resources) || WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Any(x => UsesAny(x, resources)) || Palettes.Any(x => resources.Contains(x.Palette));
+
+    private static bool UsesAny(ArrangerElement el, IReadOnlySet<IProjectResource> resources) =>
+        resources.Contains(el.Source) || el.Codec is IIndexedCodec { Palette: { } palette } && resources.Contains(palette);
+
     /// <summary>
     /// True when this editor reads any data from <paramref name="source"/>
     /// </summary>
     public bool ReadsFrom(DataSource source) =>
-        _projectArranger is TilemapArranger tilemap && (ReferenceEquals(tilemap.MapSource, source) || ReferenceEquals(tilemap.TileSource, source)) ||
+        _tilemap is not null && (ReferenceEquals(_tilemap.MapSource, source) || ReferenceEquals(_tilemap.TileSource, source)) ||
         WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Any(x => ReferenceEquals(x.Source, source));
 
-    public string? RotateDisabledReason => _projectArranger is TilemapArranger ? "Tilemap entries cannot be rotated" : null;
+    public string? RotateDisabledReason => _tilemap is not null ? "Tilemap entries cannot be rotated" : null;
 
-    public string? MirrorHorizontalDisabledReason => _projectArranger is TilemapArranger { MapFormat.HorizontalFlip: null } tilemap
-        ? $"Map format '{tilemap.MapFormat.Name}' has no horizontal flip field" : null;
+    public string? MirrorHorizontalDisabledReason => _tilemap is { MapFormat.HorizontalFlip: null }
+        ? $"Map format '{_tilemap.MapFormat.Name}' has no horizontal flip field" : null;
 
-    public string? MirrorVerticalDisabledReason => _projectArranger is TilemapArranger { MapFormat.VerticalFlip: null } tilemap
-        ? $"Map format '{tilemap.MapFormat.Name}' has no vertical flip field" : null;
+    public string? MirrorVerticalDisabledReason => _tilemap is { MapFormat.VerticalFlip: null }
+        ? $"Map format '{_tilemap.MapFormat.Name}' has no vertical flip field" : null;
+
+    public MagitekResult TryRotateElement(int elementX, int elementY, RotationOperation rotation) =>
+        WorkingArranger is Arranger arranger ? arranger.TryRotateElement(elementX, elementY, rotation) : new MagitekResult.Failed(RotateDisabledReason!);
+
+    public MagitekResult TryMirrorElement(int elementX, int elementY, MirrorOperation mirror) => WorkingArranger switch
+    {
+        _ when _tilePlotter is not null => _tilePlotter.Mirror(elementX, elementY, mirror),
+        Arranger arranger => arranger.TryMirrorElement(elementX, elementY, mirror),
+        _ => new MagitekResult.Failed($"'{WorkingArranger.Name}' cannot be mirrored")
+    };
 
     public bool ContainsPoint(double x, double y)
     {
@@ -519,9 +549,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     {
         try
         {
-            if (_projectArranger is TilemapArranger tilemap)
+            if (_tilemap is not null)
             {
-                if (!await SaveTilemapAsync(tilemap))
+                if (!await SaveTilemapAsync(_tilemap, WorkingGrid!))
                     return;
             }
             else
@@ -572,18 +602,18 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     private void CompleteSave()
     {
-        if (_projectArranger is TilemapArranger tilemap)
-            ReplaceWorkingArranger(tilemap.CloneArranger());
+        if (_tilemap is not null)
+            ReplaceWorkingArranger(_tilemap.CreateWorkingView());
         else
             ClearHistory();
 
         IsModified = false;
     }
 
-    private async Task<bool> SaveTilemapAsync(TilemapArranger tilemap)
+    private async Task<bool> SaveTilemapAsync(TilemapArranger tilemap, TilemapGrid grid)
     {
         var canWriteMap = tilemap.MapReadOnlyReason is null;
-        if (canWriteMap && tilemap.CanWriteEntries(WorkingArranger) is { HasFailed: true } checkResult)
+        if (canWriteMap && tilemap.CanWriteEntries(grid) is { HasFailed: true } checkResult)
         {
             await _interactions.AlertAsync("Save Error", checkResult.AsError.Reason);
             return false;
@@ -611,7 +641,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
         if (canWriteMap)
         {
-            var writeResult = tilemap.WriteEntries(WorkingArranger);
+            var writeResult = tilemap.WriteEntries(grid);
             if (writeResult.HasFailed)
             {
                 await _interactions.AlertAsync("Save Error", writeResult.AsError.Reason);
@@ -622,7 +652,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         return true;
     }
 
-    private void ReplaceWorkingArranger(Arranger arranger)
+    private void ReplaceWorkingArranger(IArrangerView arranger)
     {
         _imageAdapter.Reinitialize(arranger);
         OnWorkingArrangerReplaced();
@@ -649,8 +679,8 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     {
         var arranger = _projectArranger switch
         {
-            TilemapArranger tilemap => tilemap.CloneArranger(),
-            { Mode: ArrangerMode.Scattered } => _history.RestoreBase(),
+            TilemapArranger tilemap => tilemap.CreateWorkingView(),
+            ScatteredArranger => _history.RestoreBase(),
             _ => WorkingArranger
         };
         ReplaceWorkingArranger(arranger);

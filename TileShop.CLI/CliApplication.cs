@@ -22,7 +22,7 @@ public sealed class CliApplication
     private const string LogTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}";
 
     private readonly TextWriter _output;
-    private readonly Func<ILoggerFactory, IProjectService> _bootstrap;
+    private readonly Func<ILoggerFactory, (IProjectService Projects, IResourceGenerationService Generation)> _bootstrap;
     private readonly string _defaultLogFileName;
 
     private readonly Argument<string> _projectArgument = new("project") { Description = "Project file to open" };
@@ -59,9 +59,9 @@ public sealed class CliApplication
     private readonly Command _importAllCommand;
     private readonly Command _generateCommand;
 
-    /// <param name="bootstrap">Builds the project service, printing startup issues; throws when the environment cannot load</param>
+    /// <param name="bootstrap">Builds the project and generation services, printing startup issues; throws when the environment cannot load</param>
     /// <param name="defaultLogFileName">Log file used, rolling monthly, when <c>--log</c> is not given</param>
-    public CliApplication(TextWriter output, Func<ILoggerFactory, IProjectService> bootstrap, string defaultLogFileName)
+    public CliApplication(TextWriter output, Func<ILoggerFactory, (IProjectService Projects, IResourceGenerationService Generation)> bootstrap, string defaultLogFileName)
     {
         _output = output;
         _bootstrap = bootstrap;
@@ -153,9 +153,10 @@ public sealed class CliApplication
         loggerFactory.AddSerilog(logger);
 
         IProjectService projectService;
+        IResourceGenerationService generationService;
         try
         {
-            projectService = _bootstrap(loggerFactory);
+            (projectService, generationService) = _bootstrap(loggerFactory);
         }
         catch (Exception ex)
         {
@@ -166,7 +167,7 @@ public sealed class CliApplication
 
         try
         {
-            var code = await ExecuteAsync(parseResult, projectService);
+            var code = await ExecuteAsync(parseResult, projectService, generationService);
             return (int)Report(code, logger);
         }
         finally
@@ -175,7 +176,7 @@ public sealed class CliApplication
         }
     }
 
-    private Task<ExitCode> ExecuteAsync(ParseResult parseResult, IProjectService projectService)
+    private Task<ExitCode> ExecuteAsync(ParseResult parseResult, IProjectService projectService, IResourceGenerationService generationService)
     {
         var command = parseResult.CommandResult.Command;
         var project = parseResult.GetRequiredValue(_projectArgument);
@@ -193,7 +194,7 @@ public sealed class CliApplication
                 parseResult.GetRequiredValue(_exportDirectoryArgument), parseResult.GetValue(_overwriteOption)));
 
         if (command == _generateCommand)
-            return new GenerateHandler(projectService, _output).TryExecute(new GenerateOptions(project,
+            return new GenerateHandler(projectService, generationService, _output).TryExecute(new GenerateOptions(project,
                 parseResult.GetRequiredValue(_dataFileArgument), parseResult.GetRequiredValue(_definitionArgument),
                 parseResult.GetRequiredValue(_folderArgument), parseResult.GetValue(_dryRunOption), parseResult.GetValue(_saveProjectOption),
                 parseResult.GetValue(_yesOption), parseResult.GetValue(_overwriteEditedOption)));

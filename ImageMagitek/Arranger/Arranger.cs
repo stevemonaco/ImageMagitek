@@ -15,7 +15,7 @@ namespace ImageMagitek;
 /// <para>ScatteredArrangers are capable of accessing many files, file offsets, palettes, and codecs in a single arranger</para>
 /// <para>TilemapArrangers derive their elements from the entries of a tilemap</para>
 /// </summary>
-public enum ArrangerMode { Sequential, Scattered, Tilemap };
+public enum ArrangerMode { Sequential, Scattered };
 
 /// <summary>
 /// Layout of graphics for the arranger
@@ -40,7 +40,7 @@ public enum ArrangerMoveType { ByteDown, ByteUp, RowDown, RowUp, ColRight, ColLe
 /// <summary>
 /// Arranger base class for graphical screen elements
 /// </summary>
-public abstract class Arranger : IProjectResource
+public abstract class Arranger : IProjectResource, IArrangerView, IUnavailableResource
 {
     /// <summary>
     /// Individual Elements that compose the Arranger in [y, x] ordering
@@ -82,6 +82,8 @@ public abstract class Arranger : IProjectResource
     public bool CanContainChildResources => false;
 
     public abstract bool ShouldBeSerialized { get; set; }
+
+    FileDataSource? IUnavailableResource.FindMissingDataSource() => ArrangerExtensions.FindMissingDataSource(this);
 
     public abstract void Resize(int arrangerWidth, int arrangerHeight);
 
@@ -158,198 +160,27 @@ public abstract class Arranger : IProjectResource
     /// </summary>
     /// <param name="elemX">x-coordinate in Element coordinates</param>
     /// <param name="elemY">y-coordinate in Element coordinates</param>
-    /// <returns></returns>
     public ArrangerElement? GetElement(int elemX, int elemY) => ElementGrid[elemY, elemX];
 
     /// <summary>
-    /// Gets an Element from a position in the Arranger in pixel coordinates
+    /// A DropElements edge per distinct element source and a FallbackPalette edge per distinct indexed codec palette.
     /// </summary>
-    /// <param name="pixelX">x-coordinate in pixel coordinates</param>
-    /// <param name="pixelY">x-coordinate in pixel coordinates</param>
-    public ArrangerElement? GetElementAtPixel(int pixelX, int pixelY)
+    public virtual IEnumerable<ResourceEdge> Dependencies
     {
-        var elX = pixelX / ElementPixelSize.Width;
-        var elY = pixelY / ElementPixelSize.Height;
-
-        if (elX >= ArrangerElementSize.Width || elY >= ArrangerElementSize.Height || pixelX < 0 || pixelY < 0)
-            throw new ArgumentOutOfRangeException($"{nameof(GetElementAtPixel)} parameter was out of range: ({pixelX}, {pixelY})px, ({elX}, {elY})el");
-
-        return ElementGrid[elY, elX];
-    }
-
-    /// <summary>
-    /// Returns the enumeration of all Elements in the grid in a left-to-right, row-by-row order
-    /// </summary>
-    /// <returns></returns>
-    public virtual IEnumerable<ArrangerElement?> EnumerateElements() =>
-        EnumerateElements(0, 0, ArrangerElementSize.Width, ArrangerElementSize.Height);
-
-    /// <summary>
-    /// Returns the full enumeration of a subsection of all Elements in the grid in a left-to-right, row-by-row order
-    /// </summary>
-    /// <param name="elemX">Starting x-coordinate in element coordinates</param>
-    /// <param name="elemY">Starting y-coordinate in element coordinates</param>
-    /// <param name="width">Number of elements to enumerate in x-direction</param>
-    /// <param name="height">Number of elements to enumerate in y-direction</param>
-    /// <returns></returns>
-    public virtual IEnumerable<ArrangerElement?> EnumerateElements(int elemX, int elemY, int width, int height)
-    {
-        for (int y = 0; y < height; y++)
+        get
         {
-            for (int x = 0; x < width; x++)
+            var edges = new HashSet<ResourceEdge>();
+
+            foreach (var el in this.EnumerateElements().OfType<ArrangerElement>())
             {
-                yield return ElementGrid[y + elemY, x + elemX];
+                if (el.Source is not null)
+                    edges.Add(new(el.Source, ResourceEdgeKind.DropElements));
+
+                if (el.Codec is IIndexedCodec codec && codec.Palette is not null)
+                    edges.Add(new(codec.Palette, ResourceEdgeKind.FallbackPalette));
             }
+
+            return edges;
         }
-    }
-
-    /// <summary>
-    /// Returns the enumeration of all ArrangerElement locations in the grid in a left-to-right, row-by-row order
-    /// </summary>
-    /// <returns></returns>
-    public virtual IEnumerable<(int x, int y)> EnumerateElementsWithinElementRange() =>
-        EnumerateElementsWithinElementRange(0, 0, ArrangerElementSize.Width, ArrangerElementSize.Height);
-
-    /// <summary>
-    /// Returns the full enumeration of a subsection of all ArrangerElement locations in the grid in a left-to-right, row-by-row order
-    /// </summary>
-    /// <param name="elemX">Starting x-coordinate in element coordinates</param>
-    /// <param name="elemY">Starting y-coordinate in element coordinates</param>
-    /// <param name="width">Number of elements to enumerate in x-direction</param>
-    /// <param name="height">Number of elements to enumerate in y-direction</param>
-    public virtual IEnumerable<(int x, int y)> EnumerateElementsWithinElementRange(int elemX, int elemY, int width, int height)
-    {
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                yield return (x + elemX, y + elemY);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Returns the full enumeration of a subsection of Elements in the grid in a left-to-right, row-by-row order
-    /// </summary>
-    /// <param name="x">Starting x-coordinate in pixel coordinates</param>
-    /// <param name="y">Starting y-coordinate in pixel coordinates</param>
-    /// <param name="width">Width of range in pixels</param>
-    /// <param name="height">Height of range in pixels</param>
-    /// <returns></returns>
-    public virtual IEnumerable<ArrangerElement?> EnumerateElementsWithinPixelRange(int pixelX, int pixelY, int width, int height)
-    {
-        if (width <= 0 || height <= 0)
-            yield break;
-
-        int elemX = pixelX / ElementPixelSize.Width;
-        int elemY = pixelY / ElementPixelSize.Height;
-        int elemX2 = (pixelX + width + ElementPixelSize.Width - 1) / ElementPixelSize.Width;
-        int elemY2 = (pixelY + height + ElementPixelSize.Height - 1) / ElementPixelSize.Height;
-
-        for (int y = elemY; y < elemY2; y++)
-        {
-            for (int x = elemX; x < elemX2; x++)
-            {
-                yield return ElementGrid[y, x];
-            }
-        }
-    }
-
-    /// <summary>
-    /// Returns the full enumeration of a subsection of Element locations in the grid in a left-to-right, row-by-row order
-    /// </summary>
-    /// <param name="x">Starting x-coordinate in pixel coordinates</param>
-    /// <param name="y">Starting y-coordinate in pixel coordinates</param>
-    /// <param name="width">Width of range in pixels</param>
-    /// <param name="height">Height of range in pixels</param>
-    /// <returns>A tuple with the x and y location of the element</returns>
-    public virtual IEnumerable<(int X, int Y)> EnumerateElementLocationsWithinPixelRange(int pixelX, int pixelY, int width, int height)
-    {
-        if (width <= 0 || height <= 0)
-            yield break;
-
-        int elemX = pixelX / ElementPixelSize.Width;
-        int elemY = pixelY / ElementPixelSize.Height;
-        int elemX2 = (pixelX + width + ElementPixelSize.Width - 1) / ElementPixelSize.Width;
-        int elemY2 = (pixelY + height + ElementPixelSize.Height - 1) / ElementPixelSize.Height;
-
-        for (int y = elemY; y < elemY2; y++)
-        {
-            for (int x = elemX; x < elemX2; x++)
-            {
-                yield return (x, y);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Returns the set of distinct Palettes contained by the Arranger's Elements
-    /// </summary>
-    /// <returns></returns>
-    public HashSet<Palette> GetReferencedPalettes()
-    {
-        return EnumerateElements()
-            .OfType<ArrangerElement>()
-            .Select(x => x.Codec)
-            .OfType<IIndexedCodec>()
-            .Select(x => x.Palette)
-            .OfType<Palette>()
-            .Distinct()
-            .ToHashSet();
-    }
-
-    /// <summary>
-    /// Returns the set of distinct Codecs contained by the Arranger's Elements
-    /// </summary>
-    /// <returns></returns>
-    public HashSet<IGraphicsCodec> GetReferencedCodecs()
-    {
-        return EnumerateElements()
-            .OfType<ArrangerElement>()
-            .Select(x => x.Codec)
-            .Distinct()
-            .ToHashSet();
-    }
-
-    /// <summary>
-    /// Gets all project resources referenced by this arranger
-    /// </summary>
-    public abstract IEnumerable<IProjectResource> LinkedResources { get; }
-
-    /// <summary>
-    /// Unlinks project resources directly referenced by ArrangerElements. Does not unlink Palettes as they're part of the Codec.
-    /// </summary>
-    /// <param name="resource"></param>
-    /// <returns>True if unlinked, false if not</returns>
-    public bool UnlinkResource(IProjectResource resource)
-    {
-        if (resource is Palette)
-            return false;
-        else if (resource is DataSource df)
-            return UnlinkDataFile(df);
-        else
-            return false;
-    }
-
-    private bool UnlinkDataFile(DataSource dataFile)
-    {
-        var isModified = false;
-
-        for (int y = 0; y < ArrangerElementSize.Height; y++)
-        {
-            for (int x = 0; x < ArrangerElementSize.Width; x++)
-            {
-                if (GetElement(x, y) is ArrangerElement el)
-                {
-                    if (ReferenceEquals(dataFile, el.Source))
-                    {
-                        ResetElement(x, y);
-                        isModified = true;
-                    }
-                }
-            }
-        }
-
-        return isModified;
     }
 }

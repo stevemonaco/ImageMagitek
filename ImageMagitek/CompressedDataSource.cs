@@ -30,6 +30,12 @@ public sealed class CompressedDataSource : DataSource
         }
     }
 
+    /// <inheritdoc/>
+    public override FileDataSource? FindMissingDataSource() => Parent is FileDataSource { IsMissing: true } missing ? missing : null;
+
+    /// <inheritdoc/>
+    public override string? UnavailableReason => DecompressionError;
+
     /// <summary>
     /// Why the block could not be decompressed, or null when it was. Decompresses on first access.
     /// </summary>
@@ -64,7 +70,7 @@ public sealed class CompressedDataSource : DataSource
     /// </summary>
     public void Invalidate() => ReplaceStream(() => _stream = CreateStream());
 
-    public override IEnumerable<IProjectResource> LinkedResources => [Parent];
+    public override IEnumerable<ResourceEdge> Dependencies => [new(Parent, ResourceEdgeKind.Cascade)];
 
     private void OnParentDataWritten(object? sender, EventArgs e)
     {

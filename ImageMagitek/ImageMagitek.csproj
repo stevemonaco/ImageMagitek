@@ -22,6 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="ImageMagitek.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="_codecs\*.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -10,7 +10,7 @@ class Program
     static async Task<int> Main(string[] args)
     {
         var app = new CliApplication(Console.Out,
-            loggerFactory => CliBootstrap.CreateProjectService(BootstrapPaths.FromDirectory(AppContext.BaseDirectory), loggerFactory, Console.Out),
+            loggerFactory => CliBootstrap.CreateProjectServices(BootstrapPaths.FromDirectory(AppContext.BaseDirectory), loggerFactory, Console.Out),
             Path.Combine(AppContext.BaseDirectory, "errorlogCLI.txt"));
 
         return await app.RunAsync(args);

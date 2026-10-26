@@ -2,8 +2,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Monaco.PathTree;
-using ImageMagitek;
-using ImageMagitek.Metatiles;
+using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services;
 using TileShop.CLI.Porters;
 
@@ -24,7 +23,7 @@ public class ExportAllHandler : ProjectCommandHandler<ExportAllOptions>
             return ExitCode.ProjectOpenError;
 
         var results = projectTree.EnumerateDepthFirst()
-            .Where(x => x.Item is ScatteredArranger or TilemapArranger or MetatileMap)
+            .Where(x => ResourceKindRegistry.BuiltIn.FindByResource(x.Item)?.Exportable == true)
             .Select(node => Exporter.ExportArranger(projectTree, projectTree.CreatePathKey(node), options.ExportDirectory, options.ForceOverwrite, Output))
             .ToList();
 

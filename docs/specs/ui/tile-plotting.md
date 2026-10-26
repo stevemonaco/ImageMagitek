@@ -45,7 +45,7 @@ depends:
 
 ## Purpose
 
-Tiles mode is the graphics editor's (UI-GRAPHICS-EDITOR) fourth mode on a tilemap (LIB-TILEMAPS): it plots whole tiles into the map, as tilemap editors do, from a tile palette shown beside the canvas. The brush, tile palette and stamping logic are LIB-TILEMAPS "Tile plotting"; edits go to the editor's working copy and are written by the tilemap Save (UI-GRAPHICS-EDITOR-055), with undo from UI-EDIT-HISTORY. Arrange keeps rearranging entries (UI-ARRANGING) and Draw keeps drawing pixels on the shared tiles (UI-DRAWING). This spec also owns Edit Tile Set, which opens the tile set for pixel work.
+Tiles mode is the graphics editor's (UI-GRAPHICS-EDITOR) fourth mode on a tilemap (LIB-TILEMAPS): it plots whole tiles into the map, as tilemap editors do, from a tile palette shown beside the canvas. The brush, tile palette and stamping logic are LIB-TILEMAPS "Tile plotting"; edits go to the entries of the editor's working grid (LIB-TILEMAPS-085) and are written by the tilemap Save (UI-GRAPHICS-EDITOR-055), with undo from UI-EDIT-HISTORY. Arrange keeps rearranging entries (UI-ARRANGING) and Draw keeps drawing pixels on the shared tiles (UI-DRAWING). This spec also owns Edit Tile Set, which opens the tile set for pixel work.
 
 ## Requirements
 
@@ -81,11 +81,11 @@ Tiles mode is the graphics editor's (UI-GRAPHICS-EDITOR) fourth mode on a tilema
 
 ### History and Save
 
-- **UI-TILE-PLOTTING-013** — A Tile Pencil stroke, a fill and an Erase stroke that change at least one cell shall each mark the editor modified and record one history step ("Plot Tiles", "Fill Tiles", "Erase Tiles") when the stroke ends by release, tool switch or mode change; one that changes nothing records nothing. Picking records nothing. Undo and redo restore the working copy (UI-EDIT-HISTORY-010, -012).
+- **UI-TILE-PLOTTING-013** — A Tile Pencil stroke, a fill and an Erase stroke that change at least one cell shall each mark the editor modified and record one history step ("Plot Tiles", "Fill Tiles", "Erase Tiles") when the stroke ends by release, tool switch or mode change; one that changes nothing records nothing. Picking records nothing. Undo and redo restore the working grid (UI-EDIT-HISTORY-010, -012, -019).
   - Tests: `GraphicsEditHistoryTests.PlotTiles_UndoRedo`, `TilePlottingTests.Stamp_SameTileAgain_ReportsNoChange`; manual — plot, undo, redo.
 - **UI-TILE-PLOTTING-014** — Saving after plotting shall write only the entries that differ (UI-GRAPHICS-EDITOR-055, LIB-TILEMAPS-045), and switching modes with unsaved plots shall prompt as UI-GRAPHICS-EDITOR-003.
   - Tests: `TilePlottingTests.Stamp_ThenWriteEntries_ChangesOnlyTargetEntry`; manual — on a copy of the FF2 demo, plot, fill and erase on "Title Map", Ctrl+S, and compare the map bytes at 0x46000 with the original.
-- **UI-TILE-PLOTTING-015** — When the working copy is replaced (save, discard, undo or redo of an arranger action, reload) or a palette's colors change, the tile palette shall be redrawn from the current tile pixels and palettes, keeping the brush.
+- **UI-TILE-PLOTTING-015** — When the working grid is replaced (save, discard, undo or redo of an arranger action, reload) or a palette's colors change, the tile palette shall be redrawn from the current tile pixels and palettes, keeping the brush.
   - Tests: manual — draw a tile in Draw mode, save, switch to Tiles and check the tile palette shows the new pixels.
 
 ### Edit Tile Set
@@ -95,8 +95,8 @@ Tiles mode is the graphics editor's (UI-GRAPHICS-EDITOR) fourth mode on a tilema
 
 ## Invariants
 
-- The tile palette exists exactly for editors on a tilemap with a writable map, and the plotter always edits the current working copy.
-- Every Tiles mode edit goes through the working copy; nothing in Tiles mode writes the map or tiles before Save.
+- The tile palette exists exactly for editors on a tilemap with a writable map, and the plotter always edits the current working grid.
+- Every Tiles mode edit goes through the working grid; nothing in Tiles mode writes the map or tiles before Save.
 
 ## Edge cases
 
@@ -126,7 +126,7 @@ Tiles mode is the graphics editor's (UI-GRAPHICS-EDITOR) fourth mode on a tilema
 
 ## Open items
 
-- Mode switches between Arrange and Tiles prompt Save Changes (UI-GRAPHICS-EDITOR-003) even though both edit the same working copy.
+- Mode switches between Arrange and Tiles prompt Save Changes (UI-GRAPHICS-EDITOR-003) even though both edit the same working grid.
 - Each plot re-renders the whole working image; large maps may need partial invalidation.
-- Each history step stores a full snapshot of the working copy (UI-EDIT-HISTORY-009).
+- Each history step stores a full copy of the working grid (UI-EDIT-HISTORY-019).
 - Pointer gestures (stamping, filling, picking, erasing, drag-selecting in the tile palette, hover status) have no automated check.

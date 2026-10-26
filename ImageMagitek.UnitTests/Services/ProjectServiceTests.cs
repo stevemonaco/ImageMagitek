@@ -397,6 +397,35 @@ public sealed class ProjectServiceTests : IAsyncLifetime
         Assert.Null(projectVm.Find(palette));
     }
 
+    [Fact]
+    public async Task ProjectNodeViewModel_Replaced_KeepsItemExpansionAndSelection()
+    {
+        var data = await AddDataFileAsync(_tree.Root, "data");
+        var folder = await AddFolderAsync(_tree.Root, "Folder");
+        var old = await AddPaletteAsync(folder, "pal", (DataSource)data.Item, new ColorRgba32(1, 2, 3, 255));
+        var projectVm = new ProjectNodeViewModel(_tree);
+        var folderVm = projectVm.Find(folder)!;
+        var paletteVm = projectVm.Find(old)!;
+        folderVm.IsExpanded = true;
+        paletteVm.IsSelected = true;
+        var replacement = new PaletteNode("pal", (Palette)old.Item);
+
+        _tree.ReplaceNodes([(old, "/Folder/pal")], () =>
+        {
+            folder.DetachChildNode("pal");
+            folder.AttachChildNode(replacement);
+        });
+
+        Assert.Equal(ProjectTreeChangeKind.Replaced, Assert.Single(_changes, x => ReferenceEquals(x.Node, replacement)).Kind);
+        Assert.Same(paletteVm, Assert.Single(folderVm.Children));
+        Assert.Same(replacement, paletteVm.Node);
+        Assert.Same(paletteVm, projectVm.Find(replacement));
+        Assert.Null(projectVm.Find(old));
+        Assert.True(folderVm.IsExpanded);
+        Assert.True(paletteVm.IsSelected);
+        AssertMatchesTree(projectVm, _tree.Root);
+    }
+
     private async Task<ProjectTree> ReopenAsync()
     {
         var projectFile = _tree.Root.DiskLocation!;
@@ -910,13 +939,6 @@ public sealed class ProjectServiceTests : IAsyncLifetime
         Assert.True(File.Exists(PathOf(" Lead", $"{longName}.xml")));
     }
 
-    private static void AssertNoTransactionFiles(string directory)
-    {
-        Assert.Empty(Directory.EnumerateFiles(directory, "*.tmp", SearchOption.AllDirectories));
-        Assert.Empty(Directory.EnumerateFiles(directory, "*.bak", SearchOption.AllDirectories));
-        Assert.Empty(Directory.EnumerateFiles(directory, "_transaction.json", SearchOption.AllDirectories));
-    }
-
     private static Palette PaletteOf(ResourceNode node) => (Palette)node.Item;
     private static DataSource SourceOf(ResourceNode node) => (DataSource)node.Item;
 
@@ -961,7 +983,7 @@ public sealed class ProjectServiceTests : IAsyncLifetime
         Assert.All(results, x => Assert.True(x.HasSucceeded));
         Assert.Contains(_colorFactory.ToHexString(palColor), File.ReadAllText(PathOf("pal.xml")));
         Assert.Contains(_colorFactory.ToHexString(otherColor), File.ReadAllText(PathOf("other.xml")));
-        AssertNoTransactionFiles(_directory);
+        TestPaths.AssertNoTransactionFiles(_directory);
     }
 
     [Fact]
@@ -1080,7 +1102,7 @@ public sealed class ProjectServiceTests : IAsyncLifetime
         var reopened = await _service.OpenProjectFileAsync(PathOf("Fresh", "gameProject.xml"));
         var source = ItemOf<FileDataSource>(reopened.AsSuccess.Result, "game");
         Assert.Equal(PathOf("Fresh", "game.bin"), Path.GetFullPath(source.FileLocation));
-        AssertNoTransactionFiles(PathOf("Fresh"));
+        TestPaths.AssertNoTransactionFiles(PathOf("Fresh"));
     }
 
     [Fact]
@@ -1091,7 +1113,7 @@ public sealed class ProjectServiceTests : IAsyncLifetime
         Assert.Equal(PathOf("data.xml"), node.DiskLocation);
         Assert.NotNull(node.Model);
         Assert.Contains("datafile", File.ReadAllText(PathOf("data.xml")));
-        AssertNoTransactionFiles(_directory);
+        TestPaths.AssertNoTransactionFiles(_directory);
     }
 
     [Fact]
@@ -1275,7 +1297,7 @@ public sealed class ProjectServiceTests : IAsyncLifetime
             Assert.Equal(Path.Combine(newDirectory, "Folder"), folder.DiskLocation);
             Assert.Equal(oldFiles.Keys.Order(), ReadFiles(_directory).Keys.Order());
             Assert.All(oldFiles, x => Assert.Equal(x.Value, File.ReadAllBytes(x.Key)));
-            AssertNoTransactionFiles(newDirectory);
+            TestPaths.AssertNoTransactionFiles(newDirectory);
 
             var copy = (await otherService.OpenProjectFileAsync(newProjectFile)).AsSuccess.Result;
             var copyFolder = copy.Root.ChildNodes.Single(x => x.Name == "Folder");
@@ -1434,7 +1456,7 @@ public sealed class ProjectServiceTests : IAsyncLifetime
             Assert.True(File.Exists(PathOf("data.xml")));
             Assert.False(File.Exists(PathOf("renamed.xml")));
             Assert.Equal(paletteXml, File.ReadAllText(PathOf("pal.xml")));
-            AssertNoTransactionFiles(_directory);
+            TestPaths.AssertNoTransactionFiles(_directory);
         }
         finally
         {

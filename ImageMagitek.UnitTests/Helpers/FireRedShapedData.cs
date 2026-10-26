@@ -6,12 +6,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ImageMagitek.Colors;
+using ImageMagitek.Compression;
 using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services;
 using ImageMagitek.Tables;
 using ImageMagitek.UnitTests.Fixtures;
 using ImageMagitek.UnitTests.Tilemaps;
+using Monaco.PathTree;
 using Xunit;
 
 namespace ImageMagitek.UnitTests;
@@ -91,15 +93,7 @@ public static class FireRedShapedData
         Encode("PALLET TOWN").CopyTo(rom, NameTable + 0x10);
         Encode("VIRIDIAN CITY").CopyTo(rom, NameTable + 0x20);
 
-        // A GBA LZ77 block of literals only: 4 tiles of 0x11
-        byte[] header = [0x10, 0x80, 0x00, 0x00];
-        header.CopyTo(rom, PrimaryTiles);
-        for (var group = 0; group < 16; group++)
-        {
-            var offset = PrimaryTiles + 4 + group * 9;
-            rom[offset] = 0;
-            rom.AsSpan((int)offset + 1, 8).Fill(0x11);
-        }
+        CompressLiterals(Enumerable.Repeat((byte)0x11, 4 * 32).ToArray()).CopyTo(rom, PrimaryTiles);
 
         for (var i = 0; i < 13 * 16; i++)
             Put16(PrimaryPalettes + 2 * i, i);
@@ -131,6 +125,36 @@ public static class FireRedShapedData
     {
         rom.AsSpan((int)PrimaryTiles, 4 + 16 * 9).CopyTo(rom.AsSpan((int)TilesFreeSpace));
         Put32(rom, Primary + 4, Pointer(TilesFreeSpace));
+    }
+
+    /// <summary>
+    /// The bytes inside <see cref="RepointPrimaryTilesNested"/>'s innermost compressed block
+    /// </summary>
+    public static readonly byte[] NestedPayload = [1, 2, 3, 4, 5, 6, 7, 8];
+
+    /// <summary>
+    /// Writes primary tiles at <see cref="TilesFreeSpace"/> that hold, at offset 0, a compressed block holding at offset 0 a compressed
+    /// <see cref="NestedPayload"/>, and points the tileset at them
+    /// </summary>
+    public static void RepointPrimaryTilesNested(byte[] rom)
+    {
+        var middle = CompressLiterals(CompressLiterals(NestedPayload));
+        var tiles = new byte[4 * 32];
+        middle.CopyTo(tiles, 0);
+        CompressLiterals(tiles).CopyTo(rom, TilesFreeSpace);
+        Put32(rom, Primary + 4, Pointer(TilesFreeSpace));
+    }
+
+    private static byte[] CompressLiterals(byte[] data)
+    {
+        var block = new List<byte> { 0x10, (byte)data.Length, (byte)(data.Length >> 8), (byte)(data.Length >> 16) };
+        foreach (var group in data.Chunk(8))
+        {
+            block.Add(0);
+            block.AddRange(group);
+        }
+
+        return [.. block];
     }
 
     private static void Put32(byte[] rom, long offset, uint value) => BinaryPrimitives.WriteUInt32LittleEndian(rom.AsSpan((int)offset), value);
@@ -248,21 +272,24 @@ public sealed class GenerationProjectContext : IDisposable
     public string Directory { get; } = TestPaths.CreateTempPath("");
     public TableTestContext Definitions { get; } = new();
     public ProjectService Service { get; }
+    public ResourceGenerationService Generation { get; }
     public ProjectTree Tree { get; private set; } = null!;
 
     public string ProjectFile => Path.Combine(Directory, "project.xml");
     public string DefinitionFile => Path.Combine(Definitions.Directory, "Synthetic.table.xml");
     public string ManifestFile => Path.Combine(Definitions.Directory, "Synthetic.manifest.xml");
 
-    public GenerationProjectContext(Func<IProjectSerializerFactory, ProjectService> createService)
+    public GenerationProjectContext(Func<ProjectWorkspace, ResourceGenerationService>? createGeneration = null)
     {
         System.IO.Directory.CreateDirectory(Directory);
         File.WriteAllBytes(Path.Combine(Directory, "rom.bin"), FireRedShapedData.Create());
         Definitions.CopyFixtures();
         File.Delete(Path.Combine(Definitions.Directory, "Foreign.manifest.xml"));
 
-        Service = createService(new XmlProjectSerializerFactory(ProjectFixtures.ResourceSchemaPath, CodecFixture.Shared.CodecFactory,
+        var workspace = new ProjectWorkspace(new XmlProjectSerializerFactory(ProjectFixtures.ResourceSchemaPath, CodecFixture.Shared.CodecFactory,
             new ColorFactory(), [ProjectFixtures.DefaultPalette], null, MapFormatTests.LoadShippedFormats()));
+        Service = new ProjectService(workspace);
+        Generation = createGeneration?.Invoke(workspace) ?? new ResourceGenerationService(workspace);
     }
 
     public string RomFile => Path.Combine(Directory, "rom.bin");
@@ -284,6 +311,22 @@ public sealed class GenerationProjectContext : IDisposable
         var result = await Service.OpenProjectFileAsync(ProjectFile);
         Assert.True(result.HasSucceeded, result.HasFailed ? string.Join("\n", result.AsError.Reasons) : null);
         Tree = result.AsSuccess.Result;
+    }
+
+    /// <summary>
+    /// Adds folders '/A' then '/Z', compressed data '/A/C2' over <paramref name="parentKey"/> and '/Z/C3' over C2; a reopened tree lists '/Z' first
+    /// </summary>
+    public async Task AddCompressedChainAsync(string parentKey)
+    {
+        Assert.True(Tree.TryGetItem<DataSource>(parentKey, out var parent));
+        var a = (await Service.CreateNewFolderAsync(Tree.Root, "A")).AsSuccess.Result;
+        var z = (await Service.CreateNewFolderAsync(Tree.Root, "Z")).AsSuccess.Result;
+        var compressors = new CompressorFactory();
+
+        var c2 = new CompressedDataSource("C2", parent, 0, "GBA LZ77", compressors);
+        Assert.True((await Service.AddResourceAsync(a, c2)).HasSucceeded);
+        var c3 = new CompressedDataSource("C3", c2, 0, "GBA LZ77", compressors);
+        Assert.True((await Service.AddResourceAsync(z, c3)).HasSucceeded);
     }
 
     public void EditDefinition(Func<string, string> edit) =>

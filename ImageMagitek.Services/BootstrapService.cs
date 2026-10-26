@@ -255,11 +255,11 @@ public class BootstrapService
         return factory;
     }
 
-    public virtual IProjectService CreateProjectService(IProjectSerializerFactory serializerFactory, IColorFactory colorFactory)
+    public virtual (IProjectService Projects, IResourceGenerationService Generation) CreateProjectServices(IProjectSerializerFactory serializerFactory,
+        IColorFactory colorFactory)
     {
-        var projectService = new ProjectService(serializerFactory);
-
-        return projectService;
+        var workspace = new ProjectWorkspace(serializerFactory);
+        return (new ProjectService(workspace), new ResourceGenerationService(workspace));
     }
 
     public virtual IElementLayoutService CreateElementLayoutService()

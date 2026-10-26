@@ -8,7 +8,7 @@ namespace ImageMagitek.Image.Import;
 /// </summary>
 public sealed class ImageImportPreview
 {
-    public Arranger Arranger { get; }
+    public IArrangerView Arranger { get; }
     public DecodedImage Source { get; }
     public ImportReport Report { get; }
 
@@ -25,7 +25,7 @@ public sealed class ImageImportPreview
 
     public bool CanCommit => Report.CanCommit;
 
-    public ImageImportPreview(Arranger arranger, DecodedImage source, ImportReport report, IndexedImage current, IndexedImage result)
+    public ImageImportPreview(IArrangerView arranger, DecodedImage source, ImportReport report, IndexedImage current, IndexedImage result)
     {
         Arranger = arranger;
         Source = source;
@@ -34,7 +34,7 @@ public sealed class ImageImportPreview
         ResultIndexed = result;
     }
 
-    public ImageImportPreview(Arranger arranger, DecodedImage source, ImportReport report, DirectImage current, DirectImage result)
+    public ImageImportPreview(IArrangerView arranger, DecodedImage source, ImportReport report, DirectImage current, DirectImage result)
     {
         Arranger = arranger;
         Source = source;

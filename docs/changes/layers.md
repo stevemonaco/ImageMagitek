@@ -4,9 +4,9 @@
 
 ## Why
 
-Consoles build a screen from several layers: two to four backgrounds plus sprites, drawn back to front, with color 0 of each tile transparent. TileShop shows one arranger at a time (layers are an ARCHITECTURE §1 non-goal; backlog P3 under UI-DRAWING). The FireRed test project shows the gap: its title screen is now four [tilemaps](tilemaps.md) (an 8bpp logo, Charizard, the copyright line and the border), each correct but none of them looking like the screen. Its trainer cards, battle screens and minigames have the same problem, and tilemaps keep each entry's priority bit but cannot show it because there is only one layer.
+Consoles build a screen from several layers: two to four backgrounds plus sprites, drawn back to front, with color 0 of each tile transparent. TileShop shows one arranger at a time (layers are an ARCHITECTURE §1 non-goal; backlog P3 under UI-DRAWING). The FireRed test project shows the gap: its title screen is now four [tilemaps](../specs/lib/tilemaps.md) (an 8bpp logo, Charizard, the copyright line and the border), each correct but none of them looking like the screen. Its trainer cards, battle screens and minigames have the same problem, and tilemaps keep each entry's priority bit but cannot show it because there is only one layer.
 
-[Metatile maps](metatile-maps.md) need the same compositing inside a single resource: a FireRed map block has a bottom and a top layer, and the map is unreadable with one of them. So the compositing core is needed before scenes are, and is built first.
+[Metatile maps](../specs/lib/metatile-maps.md) need the same compositing inside a single resource: a FireRed map block has a bottom and a top layer, and the map is unreadable with one of them. So the compositing core is needed before scenes are, and is built first.
 
 ## What
 
@@ -45,17 +45,17 @@ What does not change: arrangers, palettes and their formats. A scene holds refer
 
 - **New spec `docs/specs/lib/scenes.md` (LIB-SCENES):** `LayerCompositor` (order, transparency, clipping, mixed color types, backdrop), used by LIB-METATILE-MAPS; `Scene`, `SceneLayer`, active-layer coordinate mapping, read-only rule (the active layer's arranger); priority split for tilemap layers (later phase).
 - **New spec `docs/specs/ui/scene-editor.md` (UI-SCENE-EDITOR), or new sections in UI-GRAPHICS-EDITOR:** layer list (visibility, order, active layer, Open Layer), modes available on a scene, Draw on the active layer.
-- **LIB-PROJECT-FORMAT:** the `scene` resource (XSD, model, reader, writer, mapper); load order after arrangers; version under the tilemaps proposal's "lowest sufficient version" rule.
+- **LIB-PROJECT-FORMAT:** the `scene` resource (XSD, model, reader, writer, mapper); load order after arrangers; version under LIB-PROJECT-FORMAT's "Write the lowest version that can hold the project" rule.
 - **LIB-PROJECT-SERVICE / LIB-PROJECT-TREE:** add, rename, move and delete scenes; deleting or moving an arranger updates or removes the layers that name it, listed in the deletion plan.
 - **LIB-IMAGE-IO:** composite export to a direct-color PNG.
 - **CLI-COMMANDS:** `export` and `exportall` include scenes; `import` and `importall` skip them and report it.
 - **UI-PROJECT-TREE:** "New Scene..." and "Add to Scene" on arrangers.
 - **ARCHITECTURE:** §1 drops layers from the non-goals; §3 adds Scene to the domain list.
-- **Tilemaps proposal:** the "Priority is kept, not shown" decision points here for priority-split layers.
+- **LIB-TILEMAPS:** the "Priority is kept, not shown" decision points here for priority-split layers.
 
 ## Tasks
 
-1. **Compositor.** Done (see Status). `LayerCompositor`; this task is shared with [metatile maps](metatile-maps.md) and is built first. Tests: two 4bpp layers with transparent index 0 composite in order; an 8bpp layer under a 4bpp layer; a hidden layer is skipped; a layer partly off the canvas is clipped; the backdrop fills only fully transparent pixels; a direct-color layer's alpha is respected.
+1. **Compositor.** Done (see Status). `LayerCompositor`; this task is shared with [metatile maps](../specs/lib/metatile-maps.md) and is built first. Tests: two 4bpp layers with transparent index 0 composite in order; an 8bpp layer under a 4bpp layer; a hidden layer is skipped; a layer partly off the canvas is clipped; the backdrop fills only fully transparent pixels; a direct-color layer's alpha is respected.
 2. **Scene and project format and service.** `Scene` and `SceneLayer` over the compositor. Tests: a scene round-trips; a scene naming a missing arranger fails the load naming it, like other references; deleting a layer's arranger removes the layer and the plan lists it; renaming the arranger keeps the scene's reference.
 3. **Export.** UI and CLI composite export. Tests: CLI `export` of a scene matches the composite rendered in the core test; `importall` skips scenes and reports them.
 4. **UI, View.** Scene editor with the layer list. Manual: build the FireRed title screen from the tilemaps `/Title Screen/Border Tilemap`, `Copyright Tilemap`, `Charizard Tilemap` and `Logo Tilemap` in the game's BG order, and compare with the game; build a trainer card from `/Trainer Card/Background Tilemap` and `Front Tilemap`.

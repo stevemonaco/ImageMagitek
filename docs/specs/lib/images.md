@@ -47,7 +47,7 @@ depends:
 
 ## Purpose
 
-An image is an editable pixel buffer over an arranger, or a rectangle of one: palette indices for indexed arrangers, RGBA colors for direct ones. It decodes elements through their codecs (LIB-CODECS), applies element mirror and rotation, and saves by encoding back into the data sources (LIB-DATASOURCE). Pixel edits, flood fill, color remap, palette assignment and pixel copy/paste live here; file export and import are LIB-IMAGE-IO.
+An image is an editable pixel buffer over an arranger view (`IArrangerView`, LIB-ARRANGERS-053) such as an arranger or a tilemap, or a rectangle of one: palette indices for indexed arrangers, RGBA colors for direct ones. It decodes elements through their codecs (LIB-CODECS), applies element mirror and rotation, and saves by encoding back into the data sources (LIB-DATASOURCE). Pixel edits, flood fill, color remap, palette assignment and pixel copy/paste live here; file export and import are LIB-IMAGE-IO.
 
 ## Requirements
 
@@ -104,8 +104,8 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
 
 - **LIB-IMAGES-019** — The can-set-palette check shall succeed when the pixel's element already uses that palette or every index in the element is below the palette's entry count, and fail outside the arranger, on an empty cell, or on a non-indexed codec. Indexes of element pixels outside an image covering part of the arranger come from the arranger.
   - Tests: `IndexedImageTests.CanSetPalette_SubRectangle_ChecksWholeElement`
-- **LIB-IMAGES-020** — When a palette is assigned at a pixel, the image shall give that element a clone of its codec carrying the palette, leaving every other element and arranger that shared the old codec unchanged.
-  - Tests: `IndexedImageTests.TrySetPalette_ClonedArranger_LeavesOriginalPalettes`, `IndexedImageTests.TrySetPalette_CodecSharedByTwoCells_ChangesOnlyTarget`, `IndexedImageTests.TrySetPalette_ElementsCopiedFromSequential_LeavesSequentialPalette`, `GraphicsEditHistoryTests.ApplyPalette_Undo_DoesNotModifySharedCodec`
+- **LIB-IMAGES-020** — When a palette is assigned at a pixel, the image shall give that element a clone of its codec carrying the palette, leaving every other element and arranger that shared the old codec unchanged. If the image's view is not an `Arranger`, so its elements cannot be set, then assigning shall fail with a reason and change nothing; a tilemap editor assigns a palette slot instead (LIB-TILEMAPS-086).
+  - Tests: `ArrangerViewTests.TrySetPalette_ViewOnly_FailsWithReason`, `IndexedImageTests.TrySetPalette_ClonedArranger_LeavesOriginalPalettes`, `IndexedImageTests.TrySetPalette_CodecSharedByTwoCells_ChangesOnlyTarget`, `IndexedImageTests.TrySetPalette_ElementsCopiedFromSequential_LeavesSequentialPalette`, `GraphicsEditHistoryTests.ApplyPalette_Undo_DoesNotModifySharedCodec`
 
 ### Flood fill
 
@@ -163,6 +163,7 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
 - **Reads past end of file render empty.** An arranger near or over the end of a truncated file shows the missing elements as blank, and a save skips them so the file never grows. Rejected: throwing, or showing whatever bytes are available.
 - **Encode everything, then write.** A save encodes each element into its own copy of the bytes, then writes them all and flushes. Reason: an encoder that throws partway, most likely a plugin's, used to leave the file half-written. The extra memory is one element's encoded bytes per element. Rejected: writing as each element is encoded (the earlier behavior).
 - **Read-only arrangers refuse to save.** A codec that cannot encode or a read-only data source makes the arranger read-only, checked once at the arranger and enforced in `SaveImage` (and import, LIB-IMAGE-IO), so failures happen before any byte is written rather than mid-save.
+- **Images take a read-only view.** Decoding, saving and pixel edits need only element addresses and codecs, never `SetElement`, so an image works over a tilemap, its working view or a metatile layer as over an arranger; only palette assignment needs an `Arranger`. Rejected: requiring an `Arranger` (forced derived views to inherit mutators that throw).
 - **A partial edit re-encodes the whole arranger.** Image rectangles need not be element-aligned, so the edit is merged into a full render and every element is re-encoded, leaving pixels outside the rectangle as they were.
 - **Flood fill stays within one palette.** An indexed fill does not cross into elements with a different palette, because the same index would mean a different color there.
 

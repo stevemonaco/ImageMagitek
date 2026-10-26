@@ -42,24 +42,22 @@ public partial class GraphicsEditorViewModel
     [RelayCommand]
     private void EditTileSet()
     {
-        if (_projectArranger is TilemapArranger tilemap)
-            Messenger.Send(new EditTileSetMessage(tilemap));
+        if (_tilemap is not null)
+            Messenger.Send(new EditTileSetMessage(_tilemap));
     }
 
     /// <summary>
-    /// Points the plotter at the current working copy, which undo, save and discard replace
+    /// Points the plotter at the current working grid, which undo, save and discard replace
     /// </summary>
     private void RebuildTilePlotting()
     {
-        if (!CanPlotTiles || WorkingArranger is not ScatteredArranger working)
+        if (!CanPlotTiles || _tilemap is null || WorkingGrid is not { } grid)
             return;
 
-        var tilemap = (TilemapArranger)_projectArranger;
-
-        _tilePlotter = new TilemapPlotter(tilemap, working);
+        _tilePlotter = new TilemapPlotter(_tilemap, grid);
 
         if (TilePalette is null)
-            TilePalette = new TilePaletteViewModel(tilemap, GridSettings);
+            TilePalette = new TilePaletteViewModel(_tilemap, GridSettings);
         else
             TilePalette.Refresh();
     }
@@ -105,7 +103,7 @@ public partial class GraphicsEditorViewModel
     /// <summary>
     /// Stamps the brush at every cell from the previous stroke cell to <paramref name="cell"/>
     /// </summary>
-    internal void PlotStroke(Point cell)
+    public void PlotStroke(Point cell)
     {
         if (_tilePlotter is not { } plotter || !TryGetBrush(plotter, out var brush))
             return;

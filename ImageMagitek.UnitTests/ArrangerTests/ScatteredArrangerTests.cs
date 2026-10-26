@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using ImageMagitek.Colors;
 using ImageMagitek.Codec;
 using ImageMagitek.PluginSamples;
+using ImageMagitek.Project;
 using ImageMagitek.UnitTests.TestFactories;
 using Xunit;
 
@@ -74,6 +76,20 @@ public class ScatteredArrangerTests
 
         Assert.Equal(new Size(2, 2), clone.ArrangerElementSize);
         Assert.Equal(source.GetElement(1, 1)!.Value.SourceAddress, clone.GetElement(1, 1)!.Value.SourceAddress);
+    }
+
+    [Fact]
+    public void ResetElementsReading_ResetsOnlyElementsOnTheSources()
+    {
+        var arranger = Create(2, 1);
+        var removed = arranger.GetElement(0, 0)!.Value.Source;
+        using var kept = new MemoryDataSource("kept", 64);
+        arranger.SetElement(arranger.GetElement(1, 0)!.Value.WithFile(kept, BitAddress.Zero), 1, 0);
+
+        arranger.ResetElementsReading(new HashSet<IProjectResource> { removed });
+
+        Assert.Null(arranger.GetElement(0, 0));
+        Assert.Same(kept, arranger.GetElement(1, 0)!.Value.Source);
     }
 
     private static void AssertSameCells(ScatteredArranger expected, ScatteredArranger actual)

@@ -111,6 +111,11 @@ Undo and redo for the graphics editor (UI-GRAPHICS-EDITOR). Arranger-level actio
 - **UI-EDIT-HISTORY-018** — The metatile map editor shall record each Blocks mode stroke, fill and erase that changes a block as a `PlotBlocksHistoryAction` ("Plot Blocks", "Fill Blocks", "Erase Blocks") holding a copy of the block grid after it. Undo shall restore the copy of the action before it, or the grid as it was at open, save or discard; redo shall restore the action's own copy. The modified state follows UI-EDIT-HISTORY-004, and Save and Discard clear both lists.
   - Tests: `MetatileMapEditorViewModelTests.PlotBlocks_UndoRedo`, `MetatileMapEditorViewModelTests.Save_WritesChangedBlocksOnly`
 
+### Tilemap editor
+
+- **UI-EDIT-HISTORY-019** — In a graphics editor on a tilemap, an arranger action's snapshot (and the state at open, save or discard) shall be a copy of the working grid of entries (LIB-TILEMAPS-085), and restoring it shall give a working view over a new copy sharing the editor's slot codecs, so undo and redo restore each cell's tile, slot and flips exactly, also for slots that share a palette.
+  - Tests: `GraphicsEditHistoryTests.Undo_TilemapPaste_RestoresGridSlots`, `TilemapGraphicsEditorTests.Paste_FromSameTilemap_KeepsSlot_UndoRedoAndSave`, `TilemapGraphicsEditorTests.PlotTiles_SharedSlot_UndoRestoresSlot`
+
 ## Invariants
 
 - The snapshot of the most recent arranger action in the undo list matches the working arranger's elements and palettes.
@@ -129,6 +134,7 @@ Undo and redo for the graphics editor (UI-GRAPHICS-EDITOR). Arranger-level actio
 
 - **Arranger actions snapshot the arranger.** Every arranger action stores a snapshot of the arranger taken after it ran; undo restores the previous snapshot. Reason: simpler than making each action invertible, and arrangers are small. Rejected: invertible actions. This replaced a model where Mirror, Rotate, Apply Palette, Delete and Resize were recorded but never redone, and undo re-cloned the arranger only when an element paste was in history.
 - **Pixel actions replay from source.** Undoing a pixel action re-decodes from the data source and replays the remaining actions instead of storing pixel snapshots. Reason: pixel edits are small to replay and the source holds the saved state. Consequence: undo depends on the source being unchanged since the last save (see Open items).
+- **Tilemap snapshots copy the entry grid.** A tilemap editor's state is its grid of entries, so its snapshots are grid copies and restore never touches codecs. Reason: the slot is a field of the entry, and copying the grid on both capture and restore keeps later edits out of stored snapshots. Rejected: snapshotting the view's elements (loses the slot when two slots share a palette).
 - **Snapshots store palettes separately.** Cloned arrangers share codec instances, so a snapshot keeps each element's palette and restore clones the codec when it differs. Apply Palette no longer changes a codec in place (LIB-IMAGES-020); this remains a defense against shared codecs.
 - **Apply Palette does not reset pixel replay.** It changes only which palette decodes the pixels, so pixel actions before it are replayed after undoing past it.
 - **Every action goes through `AddHistoryAction`.** Color Remap once added to the undo list directly, skipping the redo clear and the CanUndo/CanRedo notifications.

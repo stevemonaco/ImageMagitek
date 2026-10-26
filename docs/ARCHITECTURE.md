@@ -13,7 +13,8 @@ ImageMagitek is a .NET library for viewing, editing and organizing retro game gr
 
 **Non-goals for 1.0**
 
-- Direct-color XML codecs, compression support ([proposal](changes/compression-support.md)), new platforms and color models, new drawing or selection tools, layers, tilemaps, and scripting. They are in the backlog.
+- Direct-color XML codecs, new platforms and color models, new drawing or selection tools, layered scenes ([proposal](changes/layers.md)), and scripting. They are in the backlog.
+- Read-only compressed data ([proposal](changes/compression-support.md)), tilemaps, metatile maps and table-driven generation are built on `dev-experiment` against draft specs (LIB-COMPRESSION, LIB-TILEMAPS, LIB-METATILE-MAPS, LIB-TABLES). They are not held to the 1.0 bar while their specs are drafts.
 - Writing compressed data back, relocating blocks, or rebuilding archives, ever (see the compression proposal).
 - A plugin manager UI. Loaded plugin codecs are listed in About.
 
@@ -21,14 +22,14 @@ ImageMagitek is a .NET library for viewing, editing and organizing retro game gr
 
 | Project | Purpose | Specs |
 |---|---|---|
-| `ImageMagitek` | Core library: data sources, codecs (`_codecs/` XML, `Codec/Specialized`), colors and palettes (`_palettes/`), arrangers and element layouts (`_layouts/`), images, PNG import/export, project tree and XML project format (`_schemas/`). No UI dependency. | [`lib/`](specs/lib/index.md) |
-| `ImageMagitek.Plugins.Contracts` | The plugin contract: codec plugin interfaces, `CodecInfo`, `PluginColor`. No dependencies; the only assembly plugins compile against [LIB-PLUGINS]. | [`lib/`](specs/lib/index.md) |
-| `ImageMagitek.Services` | Bootstrapping, settings, codec/palette/plugin services, `ProjectService` (the project operations both front ends use). | [`lib/`](specs/lib/index.md) |
-| `TileShop.Shared` | Interfaces, messages, input and tool types shared by the UI and CLI. | [`ui/`](specs/ui/index.md) |
+| `ImageMagitek` | Core library: data sources and compressed data (`Compression`), codecs (`_codecs/` XML, `Codec/Specialized`), colors and palettes (`_palettes/`), arrangers and element layouts (`_layouts/`), tilemaps and map formats (`_mapformats/`), metatile maps, the layer compositor (`Scenes`), table definitions and generation (`Tables`), images, PNG import/export, project tree and XML project format (`_schemas/`). No UI dependency. | [`lib/`](specs/lib/index.md) |
+| `ImageMagitek.Plugins.Contracts` | The plugin contract: codec and compression plugin interfaces, `CodecInfo`, `CompressionInfo`, `PluginColor`. No dependencies; the only assembly plugins compile against [LIB-PLUGINS]. | [`lib/`](specs/lib/index.md) |
+| `ImageMagitek.Services` | Bootstrapping, settings, codec/palette/plugin services, `ProjectService` (the project operations both front ends use) plus `ResourceGenerationService` (generation from table definitions). | [`lib/`](specs/lib/index.md) |
+| `TileShop.Shared` | Interfaces, interactions, messages, input and tool types shared by TileShop.UI and TileShop.UI.Controls. The CLI does not reference it. | [`ui/`](specs/ui/index.md) |
 | `TileShop.UI` | Avalonia app (Semi theme, Dock, PanAndZoom), MVVM with CommunityToolkit.Mvvm, DI in `Bootstrapper.cs`. Feature folders under `Features/`. | [`ui/`](specs/ui/index.md) |
 | `TileShop.UI.Controls` | Custom Avalonia controls used by TileShop.UI. | [`ui/`](specs/ui/index.md) |
-| `TileShop.CLI` | `print`, `export`, `exportall`, `import`, `importall` over an existing project. | [`cli/`](specs/cli/index.md) |
-| `ImageMagitek.UnitTests` | xUnit tests for the library, services and UI ViewModel logic (references TileShop.UI). | — |
+| `TileShop.CLI` | `print`, `export`, `exportall`, `import`, `importall` and `generate` over an existing project. | [`cli/`](specs/cli/index.md) |
+| `ImageMagitek.UnitTests` | xUnit tests for the library, services, CLI and UI ViewModel logic (references TileShop.UI, TileShop.CLI, the plugin samples and DemoArtGenerator, so library tests build only with Avalonia; see the backlog). | — |
 | `ImageMagitek.Benchmarks` | BenchmarkDotNet codec benchmarks. | — |
 | `tools/DemoArtGenerator` | Console generator for the welcome screen's demo files `TileShop.UI/_demo/*.bin` and the app icon (`Assets/tsicon.ico`, `tslogo.svg`, `tslogo.png`); rerun it to change the art. `--preview <png> [scene]` also writes a preview sheet. | — (UI-WELCOME owns the file) |
 | `Samples/` | Plugin samples (`ImageMagitek.PluginSamples`, referencing only the contracts assembly, also used by the tests), and FF5 monster sprite samples: a CLI exporter/importer and an Avalonia viewer. | — |
@@ -37,13 +38,16 @@ Build configuration is shared through `Directory.Build.props` and `Directory.Pac
 
 ## 3. Domain
 
-- **DataSource** — a byte source: a file (`FileDataSource`, which may be missing and relinked) or memory (`MemoryDataSource`, never serialized). Raises `DataWritten` after pixel saves. [LIB-DATASOURCE]
+- **DataSource** — a byte source: a file (`FileDataSource`, which may be missing and relinked), memory (`MemoryDataSource`, never serialized) or the decompressed bytes of a block in another source (`CompressedDataSource`, read-only, chainable). Raises `DataWritten` after pixel saves. [LIB-DATASOURCE, LIB-COMPRESSION]
 - **Codec** — decodes and encodes one element's pixels for a platform format. Indexed codecs yield palette indices; direct codecs yield colors. `CanEncode` false makes an arranger read-only. [LIB-CODECS]
 - **Palette** — an ordered list of color sources (file ranges, project-native colors, foreign raw values) under one color model. [LIB-COLORS, LIB-PALETTES]
-- **Arranger** — a 2D grid of elements. A *sequential* arranger reads contiguous data from one source (browsing a file); a *scattered* arranger references arbitrary sources, offsets, codecs and palettes per element (a composed sprite or screen). [LIB-ARRANGERS]
+- **Arranger** — a 2D grid of elements. A *sequential* arranger reads contiguous data from one source (browsing a file); a *scattered* arranger references arbitrary sources, offsets, codecs and palettes per element (a composed sprite or screen). Renderers, export and import read any `IArrangerView`, which arrangers, tilemaps and metatile layers provide. [LIB-ARRANGERS]
 - **Element** — one cell of an arranger: source, address, codec, palette, mirror and rotation.
+- **Tilemap** — a map of entries (tile index, palette slot, flips, priority) read from data through a declarative map format, drawn from a tile set with palette slots; edited as a grid of entries and written back entry by entry. [LIB-TILEMAPS]
+- **Metatile set and metatile map** — a metatile set is a table of multi-layer blocks over a tile set; a metatile map is a block map drawn through one or more metatile sets, composited layer by layer. [LIB-METATILE-MAPS, LIB-SCENES]
+- **Table definition** — a declarative XML description of a game's record tables that generates ordinary project resources and a manifest, so a later run can regenerate them. Not a project resource. [LIB-TABLES]
 - **Image** — `IndexedImage`/`DirectImage` decode an arranger to pixels and encode them back. [LIB-IMAGES, LIB-IMAGE-IO]
-- **Project** — a tree of folders, data files, palettes and scattered arrangers, one XML file per resource. A `ProjectTree` is rooted either at a project or, for a standalone file opened without a project, at a single data file. [LIB-PROJECT-TREE, LIB-PROJECT-SERVICE, LIB-PROJECT-FORMAT]
+- **Project** — a tree of folders, data files, compressed data, palettes, scattered arrangers, tilemaps, metatile sets and metatile maps, one XML file per resource. Resources reference each other through typed dependency edges (`ResourceGraph`), which drive deletion, rebuild order and regeneration. A `ProjectTree` is rooted either at a project or, for a standalone file opened without a project, at a single data file. [LIB-PROJECT-TREE, LIB-PROJECT-SERVICE, LIB-PROJECT-FORMAT]
 
 ## 4. Architecture
 
@@ -51,17 +55,18 @@ Build configuration is shared through `Directory.Build.props` and `Directory.Pac
 TileShop.UI ─────┐            TileShop.CLI
   ViewModels      │                │
   (projections)   ▼                ▼
-            ImageMagitek.Services (ProjectService, codec/palette/plugin services, settings)
+            ImageMagitek.Services (ProjectService + ResourceGenerationService, codec/palette/plugin services, settings)
                               │
                               ▼
             ImageMagitek (DataSource, Codec, Palette, Arranger, Image, ProjectTree, XML format)
 ```
 
-- **The domain raises events; ViewModels are projections.** `ProjectTree` raises `Changed` (Added, Removed, Moved, Renamed) after the in-memory change, so rollbacks emit the reverse event; resources raise content events (`Palette.Changed`, `DataSource.DataWritten`). `ProjectService` raises `ProjectOpened`/`ProjectClosed` and forwards `TreeChanged`/`ResourceChanged` from every open tree with the tree as sender, so consumers subscribe once. The singleton consumers (`ProjectTreeViewModel`, `EditorsViewModel`, `MenuViewModel`) live for the app's lifetime; no caller reports back what it changed, and no UI message bus republishes domain events (a bridge was built and removed). Messenger messages are left only for UI commands and status text.
+- **The domain raises events; ViewModels are projections.** `ProjectTree` raises `Changed` (Added, Removed, Moved, Renamed, Replaced) after the in-memory change, so rollbacks emit the reverse event; resources raise content events (`Palette.Changed`, `DataSource.DataWritten`). `ProjectService` raises `ProjectOpened`/`ProjectClosed` and forwards `TreeChanged`/`ResourceChanged` from every open tree with the tree as sender, so consumers subscribe once. The singleton consumers (`ProjectTreeViewModel`, `EditorsViewModel`, `MenuViewModel`) live for the app's lifetime; no caller reports back what it changed, and no UI message bus republishes domain events (a bridge was built and removed). Messenger messages are left only for UI commands and status text.
 - **One kind of open tree.** A project or a standalone file is a `ProjectTree`, so lifetime events, the resource index and lookups cover both. Project-only operations refuse a standalone tree with a result. Lookups that may miss use `Find*` (null), not the throwing `Get*`.
 - **Results for expected failures; exceptions for programming errors.** Domain and service operations return `MagitekResult`/`MagitekResult<T>` (OneOf-based) for failures a user can cause (name collisions, invalid moves, project-only operations on a standalone file, import staging); bad arguments throw.
 - **Tree operations write to disk immediately.** Add, rename, move and delete change files as they happen; there is no tree-level dirty state. Only editor content is pending.
-- **Pending edits live in memory until Save.** Graphics editors work on a cloned working arranger copied back to the project resource on Save (codec instances may be shared between clones, copies and pastes and are never changed in place; assigning a palette gives the element a cloned codec; the exceptions are `SequentialArranger.ChangePalette` and `ChangeCodec`, which set a sequential editor's palette on its shared active codec, and the palette reset after a confirmed resource deletion). Palette edits sit in the shared `Palette`, so graphics editors preview them live, and the project writer serializes the node's committed model while a palette has pending edits.
+- **Pending edits live in memory until Save.** Graphics editors work on a cloned working arranger copied back to the project resource on Save, or, on a tilemap, on a working grid of entries written back as the changed entries (LIB-TILEMAPS) (codec instances may be shared between clones, copies and pastes and are never changed in place; assigning a palette gives the element a cloned codec; the exceptions are `SequentialArranger.ChangePalette` and `ChangeCodec`, which set a sequential editor's palette on its shared active codec, and the palette reset after a confirmed resource deletion). Palette edits sit in the shared `Palette`, so graphics editors preview them live, and the project writer serializes the node's committed model while a palette has pending edits.
+- **Resource kinds are described once.** Each kind is a `ResourceKind` in `ResourceKindRegistry` (LIB-PROJECT-FORMAT): the reader, writer, builder, format version, the service's node factory and regeneration dispatch through it, and resources report missing files and unreadable contents through `IUnavailableResource` (LIB-PROJECT-TREE). Adding a kind: see LIB-PROJECT-FORMAT "Adding a resource kind".
 - **Multi-file XML saves go through a write-ahead log** and are recovered the next time the project opens. Binary data writes are in place.
 - **Dialogs go through `IInteractionService`.** Alerts, prompts and request dialogs (`RequestViewModel<T>`) render as overlays in the root dialog host; ViewModels never create windows.
 - **Window-wide hotkeys belong to the active editor.** Each editor exposes `Hotkeys` and `EditCommands` holding the same command instances, with real `CanExecute` predicates, so Edit menu enablement equals hotkey enablement. Menu `InputGesture`s are display only. Plain keys yield to a focused TextBox.
@@ -79,7 +84,7 @@ TileShop.UI ─────┐            TileShop.CLI
 - **XML codecs are the default way to add a platform.** A C# codec is justified only when the format is not expressible as flow or pattern planes. Built-in C# twins of XML codecs moved to the plugin samples, named `... Plugin`, and projects naming them load the XML codec. No plugin ships with the app.
 - **Path keys, not ids, for references.** Resources reference each other by project path (`datafile="Roms/FF2"`). Readable and hand-editable; the cost is that renames and moves rewrite referencing files. A rename outside TileShop leaves references that fail the load, naming the key. See LIB-PROJECT-FORMAT.
 - **One format version, newer refused.** The project file carries the format version. A reader refuses newer versions and reads 0.9 as 1.0. There is no migration until a format change needs one.
-- **Read-only is one gate.** Anything that cannot be written back (a codec with `CanEncode` false, a read-only data source, later a compressed source) makes the arranger read-only, and every write path (draw, paste pixels, color remap, import, save, CLI import) consults the same check.
+- **Read-only is one gate.** Anything that cannot be written back (a codec with `CanEncode` false, a read-only data source, a compressed source) makes the arranger read-only, and every write path (draw, paste pixels, color remap, import, save, CLI import) consults the same check.
 - **Writes never grow a data source.** Elements past the end of their source render blank and are skipped on save.
 - **One version for UI and CLI, set in `Directory.Build.props`; a release is a draft created by the release workflow and published after the release QA pass.** See CLI-PUBLISH.
 - **Bit addresses are MSB-first.** `BitAddress` bit 0 is the most significant bit; data source reads and writes, the codecs' bit packing and the element `bitoffset` follow it. The one exception is a scattered color field's `lowbit`, which numbers bits within a byte from the least significant (LIB-PALETTES).

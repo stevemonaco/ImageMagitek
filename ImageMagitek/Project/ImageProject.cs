@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace ImageMagitek.Project;
 
@@ -25,13 +24,5 @@ public sealed class ImageProject : IProjectResource
         Name = name;
     }
 
-    public bool UnlinkResource(IProjectResource resource) => false;
-
-    public IEnumerable<IProjectResource> LinkedResources
-    {
-        get
-        {
-            return Enumerable.Empty<IProjectResource>();
-        }
-    }
+    public IEnumerable<ResourceEdge> Dependencies => [];
 }

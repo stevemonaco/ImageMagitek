@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
 
 namespace ImageMagitek.Tables;
@@ -57,18 +58,24 @@ public sealed class RegenerationPlan
     public IReadOnlyList<KeptResource> Kept { get; }
     public IReadOnlyList<SkippedResource> Skipped { get; }
 
+    /// <summary>
+    /// The resources the run replaces, removes or rebuilds; empty until the service plans it (LIB-PROJECT-SERVICE-081)
+    /// </summary>
+    public IReadOnlySet<IProjectResource> Affected { get; }
+
     public IEnumerable<RegeneratedResource> Written => Resources.Where(x => x.Kind != RegenerationKind.Unchanged);
 
     public static string ParentKeyOf(string key) => key.LastIndexOf('/') is var slash and > 0 ? key[..slash] : "/";
     public static string NameOf(string key) => key[(key.LastIndexOf('/') + 1)..];
 
     private RegenerationPlan(IReadOnlyList<RegeneratedResource> resources, IReadOnlyList<RegenerationEntry> removed, IReadOnlyList<KeptResource> kept,
-        IReadOnlyList<SkippedResource> skipped)
+        IReadOnlyList<SkippedResource> skipped, IReadOnlySet<IProjectResource>? affected = null)
     {
         Resources = resources;
         Removed = removed;
         Kept = kept;
         Skipped = skipped;
+        Affected = affected ?? new HashSet<IProjectResource>(ReferenceEqualityComparer.Instance);
     }
 
     /// <summary>
@@ -191,7 +198,12 @@ public sealed class RegenerationPlan
         new(Resources,
             Removed.Where(x => !ReferenceEquals(x, removed)).ToList(),
             Kept.Append(new KeptResource(removed.Entry, removed.CurrentKey!, "referenced", usedBy)).ToList(),
-            Skipped);
+            Skipped, Affected);
+
+    /// <summary>
+    /// Sets the resources the run affects, which the service fills when it plans (LIB-PROJECT-SERVICE-081)
+    /// </summary>
+    public RegenerationPlan WithAffected(IReadOnlySet<IProjectResource> affected) => new(Resources, Removed, Kept, Skipped, affected);
 
     /// <summary>
     /// The regeneration report (LIB-TABLES-165), with "Would add", "Would change" and "Would remove" for a dry run (CLI-COMMANDS-077)
@@ -292,74 +304,15 @@ public sealed class RegenerationPlan
         return kinds;
     }
 
-    private static IEnumerable<long> Offsets(ResourceModel model) => model switch
-    {
-        CompressedDataModel compressed => [compressed.FileOffset],
-        PaletteModel palette => palette.ColorSources.OfType<FileColorSourceModel>().Select(x => x.FileAddress),
-        MetatileSetModel set => set.AttributeDataKey is null ? [set.MetatileOffset, set.TileOffset] : [set.MetatileOffset, set.TileOffset, set.AttributeOffset],
-        MetatileMapModel map => [map.MapOffset],
-        TilemapModel tilemap => [tilemap.MapOffset, tilemap.TileOffset],
-        ScatteredArrangerModel arranger => arranger.EnumerateElements().OfType<ArrangerElementModel>()
-            .Select(x => x.FileAddress.ByteOffset * 8 + x.FileAddress.BitOffset),
-        _ => []
-    };
+    private static IEnumerable<long> Offsets(ResourceModel model) => ResourceKindRegistry.BuiltIn.FindByModel(model)?.Offsets(model) ?? [];
 
-    private static IEnumerable<string> PaletteKeys(ResourceModel model) => model switch
-    {
-        MetatileSetModel set => set.PaletteSlots.Select(x => $"{x.Key}:{x.Value}"),
-        TilemapModel tilemap => tilemap.PaletteSlots.Select(x => $"{x.Key}:{x.Value}"),
-        ScatteredArrangerModel arranger => arranger.EnumerateElements().OfType<ArrangerElementModel>().Select(x => x.PaletteKey ?? ""),
-        _ => []
-    };
+    private static IEnumerable<string> PaletteKeys(ResourceModel model) => ResourceKindRegistry.BuiltIn.FindByModel(model)?.PaletteKeys(model) ?? [];
 
     /// <summary>
     /// Copies <paramref name="model"/> with the name <paramref name="name"/> and every key it references passed through <paramref name="map"/>
     /// </summary>
-    public static ResourceModel WithKeys(ResourceModel model, string name, Func<string, string> map) => model switch
-    {
-        CompressedDataModel x => x with { Name = name, ParentKey = map(x.ParentKey) },
-        PaletteModel x => x with { Name = name, DataFileKey = x.DataFileKey is null ? null : map(x.DataFileKey) },
-        MetatileSetModel x => x with
-        {
-            Name = name,
-            MetatileDataKey = map(x.MetatileDataKey),
-            TileDataKey = map(x.TileDataKey),
-            PaletteSlots = x.PaletteSlots.ToDictionary(slot => slot.Key, slot => map(slot.Value)),
-            AttributeDataKey = x.AttributeDataKey is null ? null : map(x.AttributeDataKey)
-        },
-        MetatileMapModel x => x with
-        {
-            Name = name,
-            MapDataKey = map(x.MapDataKey),
-            Sets = x.Sets.Select(set => (map(set.SetKey), set.Base)).ToList()
-        },
-        TilemapModel x => x with
-        {
-            Name = name,
-            MapDataKey = map(x.MapDataKey),
-            TileDataKey = map(x.TileDataKey),
-            TilePaletteKey = x.TilePaletteKey is null ? null : map(x.TilePaletteKey),
-            PaletteSlots = x.PaletteSlots.ToDictionary(slot => slot.Key, slot => map(slot.Value))
-        },
-        ScatteredArrangerModel x => x with { Name = name, ElementGrid = MapGrid(x.ElementGrid, map) },
-        _ => throw new NotSupportedException($"Regenerating a '{model.GetType().Name}' is not supported")
-    };
-
-    private static ArrangerElementModel[,] MapGrid(ArrangerElementModel[,] grid, Func<string, string> map)
-    {
-        var mapped = new ArrangerElementModel[grid.GetLength(0), grid.GetLength(1)];
-
-        for (var y = 0; y < grid.GetLength(1); y++)
-        {
-            for (var x = 0; x < grid.GetLength(0); x++)
-            {
-                if (grid[x, y] is not { } el)
-                    continue;
-
-                mapped[x, y] = el with { DataFileKey = map(el.DataFileKey), PaletteKey = el.PaletteKey is null ? null : map(el.PaletteKey) };
-            }
-        }
-
-        return mapped;
-    }
+    public static ResourceModel WithKeys(ResourceModel model, string name, Func<string, string> map) =>
+        ResourceKindRegistry.BuiltIn.FindByModel(model) is { } kind
+            ? kind.WithKeys(model, name, map)
+            : throw new NotSupportedException($"Regenerating a '{model.GetType().Name}' is not supported");
 }

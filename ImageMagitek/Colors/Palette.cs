@@ -24,7 +24,7 @@ public enum PaletteStorageSource { ProjectXml, GlobalJson }
 /// Local colors are internally ColorRgba32
 /// Foreign colors are the same as the target system
 /// </summary>
-public class Palette : IProjectResource
+public class Palette : IProjectResource, IUnavailableResource
 {
     /// <summary>
     /// Most entries a project palette may hold (LIB-PROJECT-FORMAT-014)
@@ -53,6 +53,8 @@ public class Palette : IProjectResource
     /// DataSource which contains the palette colors specified by FileColorSources. Null if the underlying source cannot be saved such as GlobalJson.
     /// </summary>
     public DataSource? DataSource { get; }
+
+    FileDataSource? IUnavailableResource.FindMissingDataSource() => DataSource is FileDataSource { IsMissing: true } missing ? missing : null;
 
     /// <summary>
     /// Number of color entries in the palette
@@ -511,14 +513,12 @@ public class Palette : IProjectResource
 
     private void OnChanged() => Changed?.Invoke(this, EventArgs.Empty);
 
-    public bool UnlinkResource(IProjectResource resource) => false;
-
-    public IEnumerable<IProjectResource> LinkedResources
+    public IEnumerable<ResourceEdge> Dependencies
     {
         get
         {
             if (DataSource is not null)
-                yield return DataSource;
+                yield return new(DataSource, ResourceEdgeKind.Cascade);
         }
     }
 }

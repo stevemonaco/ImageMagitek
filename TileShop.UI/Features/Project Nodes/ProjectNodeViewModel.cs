@@ -46,6 +46,24 @@ public class ProjectNodeViewModel : ResourceNodeViewModel
                 newParentVm.InsertChildSorted(movedVm);
                 break;
 
+            case ProjectTreeChangeKind.Replaced when Find(change.OldNode!) is { } replacedVm && Find(change.Parent!) is { } replacedParentVm:
+                Unregister(replacedVm);
+                replacedVm.Retarget(change.Node);
+
+                if (ReferenceEquals(replacedVm.ParentModel, replacedParentVm))
+                {
+                    replacedParentVm.ResortChild(replacedVm);
+                }
+                else
+                {
+                    replacedVm.ParentModel?.Children.Remove(replacedVm);
+                    replacedVm.ParentModel = replacedParentVm;
+                    replacedParentVm.InsertChildSorted(replacedVm);
+                }
+
+                Register(replacedVm);
+                break;
+
             case ProjectTreeChangeKind.Renamed when Find(change.Node) is { } renamedVm:
                 renamedVm.Name = change.Node.Name;
                 renamedVm.ParentModel?.ResortChild(renamedVm);

@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek.Colors;
 using ImageMagitek.Compression;
 using ImageMagitek.Metatiles;
+using ImageMagitek.Project;
 using ImageMagitek.Tilemaps;
 using ImageMagitek.UnitTests.Fixtures;
 using ImageMagitek.UnitTests.TestFactories;
@@ -81,6 +82,21 @@ public sealed class MetatileMapEditorViewModelTests : IDisposable
         plot();
         editor.EndCellStroke();
     }
+
+    [Fact]
+    public void DependsOn_MapAndItsSets()
+    {
+        var map = Map(Source("blocks", Blocks(0)), 1, 1);
+        var editor = Editor(map);
+        var set = map.Sets[0].Set;
+
+        Assert.True(editor.DependsOn(Resources(map)));
+        Assert.True(editor.DependsOn(Resources(set)));
+        Assert.False(editor.EditsAny(Resources(set)));
+        Assert.False(editor.DependsOn(Resources(Set())));
+    }
+
+    private static HashSet<IProjectResource> Resources(params IProjectResource[] resources) => resources.ToHashSet<IProjectResource>(ReferenceEqualityComparer.Instance);
 
     [Fact]
     public void HidingLayer_RedrawsWithoutIt()

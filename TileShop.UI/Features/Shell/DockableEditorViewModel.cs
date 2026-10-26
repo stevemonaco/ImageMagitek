@@ -24,6 +24,13 @@ public partial class DockableEditorViewModel : Document
         _editor.PropertyChanged += Editor_PropertyChanged;
     }
 
+    partial void OnEditorChanged(ResourceEditorBaseViewModel? oldValue, ResourceEditorBaseViewModel newValue)
+    {
+        oldValue!.PropertyChanged -= Editor_PropertyChanged;
+        newValue.PropertyChanged += Editor_PropertyChanged;
+        UpdateTitle();
+    }
+
     private void Editor_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(ToolViewModel.DisplayName) or nameof(ToolViewModel.IsModified))

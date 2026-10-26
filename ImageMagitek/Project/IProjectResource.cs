@@ -26,15 +26,7 @@ public interface IProjectResource
     bool ShouldBeSerialized { get; set; }
 
     /// <summary>
-    /// Unlinks the referenced resource and resets dependents to defaults
+    /// The resources this one uses, each with what happens to this resource when that one goes.
     /// </summary>
-    /// <param name="resource"></param>
-    /// <returns></returns>
-    bool UnlinkResource(IProjectResource resource);
-
-    /// <summary>
-    /// Gets all resource references
-    /// </summary>
-    /// <returns></returns>
-    IEnumerable<IProjectResource> LinkedResources { get; }
+    IEnumerable<ResourceEdge> Dependencies { get; }
 }

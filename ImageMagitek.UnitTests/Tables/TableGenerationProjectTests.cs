@@ -11,7 +11,9 @@ using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services;
 using ImageMagitek.Tables;
+using ImageMagitek.Tilemaps;
 using ImageMagitek.UnitTests.Fixtures;
+using ImageMagitek.UnitTests.Tilemaps;
 using Monaco.PathTree;
 using Xunit;
 
@@ -19,7 +21,7 @@ namespace ImageMagitek.UnitTests.Tables;
 
 public sealed class TableGenerationProjectTests : IAsyncLifetime
 {
-    private readonly GenerationProjectContext _context = new(f => new ProjectService(f));
+    private readonly GenerationProjectContext _context = new();
     private readonly List<ProjectTreeChange> _changes = [];
 
     public async Task InitializeAsync()
@@ -43,7 +45,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
 
     private GenerationPlan Plan(string folder = "/Generated", bool overwriteEdited = false)
     {
-        var result = _context.Service.PlanGeneration(_context.Tree, "/Rom", LoadDefinition(), folder, overwriteEdited);
+        var result = _context.Generation.PlanGeneration(_context.Tree, "/Rom", LoadDefinition(), folder, overwriteEdited);
         Assert.True(result.HasSucceeded, result.HasFailed ? result.AsError.Reason : null);
         return result.AsSuccess.Result;
     }
@@ -69,7 +71,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
     {
         File.WriteAllText(_context.ManifestFile, "<tablemanifest version=\"2.0\" />");
 
-        var result = _context.Service.PlanGeneration(_context.Tree, "/Rom", LoadDefinition(), "/Generated");
+        var result = _context.Generation.PlanGeneration(_context.Tree, "/Rom", LoadDefinition(), "/Generated");
 
         Assert.True(result.HasFailed);
         Assert.Contains($"Manifest '{_context.ManifestFile}' could not be read", result.AsError.Reason);
@@ -78,7 +80,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
     [Fact]
     public async Task Generate_SavesAndReloadsWithoutDefinition()
     {
-        Assert.True((await _context.Service.GenerateResourcesAsync(_context.Tree, Plan())).HasSucceeded);
+        Assert.True((await _context.Generation.GenerateResourcesAsync(_context.Tree, Plan())).HasSucceeded);
         _context.Definitions.Dispose();
 
         _context.Service.CloseProjects();
@@ -106,9 +108,9 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         File.WriteAllBytes(Path.Combine(_context.Directory, "ff4.bin"), Ff4ShapedData.Create());
         Assert.True((await _context.Service.AddResourceAsync(_context.Tree.Root, new FileDataSource("Ff4", Path.Combine(_context.Directory, "ff4.bin")))).HasSucceeded);
         var definition = _context.Definitions.Load("Ff4Synthetic.table.xml").AsSuccess.Result;
-        var plan = _context.Service.PlanGeneration(_context.Tree, "/Ff4", definition, "/Monsters").AsSuccess.Result;
+        var plan = _context.Generation.PlanGeneration(_context.Tree, "/Ff4", definition, "/Monsters").AsSuccess.Result;
 
-        var result = await _context.Service.GenerateResourcesAsync(_context.Tree, plan);
+        var result = await _context.Generation.GenerateResourcesAsync(_context.Tree, plan);
         Assert.True(result.HasSucceeded, result.HasFailed ? result.AsError.Reason : null);
         var manifest = new XmlTableManifestReader(plan.ManifestSchemaFileName)
             .LoadFromFile(Path.Combine(_context.Definitions.Directory, "Ff4Synthetic.manifest.xml")).AsSuccess.Result;
@@ -134,7 +136,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
     {
         var plan = Plan();
 
-        var result = await _context.Service.GenerateResourcesAsync(_context.Tree, plan);
+        var result = await _context.Generation.GenerateResourcesAsync(_context.Tree, plan);
 
         Assert.True(result.HasSucceeded, result.HasFailed ? result.AsError.Reason : null);
         foreach (var resource in plan.Resources)
@@ -145,9 +147,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         }
 
         Assert.Equal("1.1", XDocument.Load(_context.ProjectFile).Root!.Attribute("version")!.Value);
-        Assert.Empty(Directory.EnumerateFiles(_context.Directory, "*.tmp", SearchOption.AllDirectories));
-        Assert.Empty(Directory.EnumerateFiles(_context.Directory, "*.bak", SearchOption.AllDirectories));
-        Assert.False(File.Exists(Path.Combine(_context.Directory, "_transaction.json")));
+        TestPaths.AssertNoTransactionFiles(_context.Directory);
 
         var manifest = new XmlTableManifestReader(plan.ManifestSchemaFileName).LoadFromFile(_context.ManifestFile).AsSuccess.Result;
         var generation = Assert.Single(manifest.Generations);
@@ -159,7 +159,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         Assert.Equal(plan.Resources.Select(x => x.Path), generation.Resources.Select(x => x.Path));
         Assert.All(generation.Resources, x => Assert.Equal(TableManifest.HashFile(Node(x.Key).DiskLocation!), x.Hash));
 
-        var second = await _context.Service.GenerateResourcesAsync(_context.Tree, Plan("/Second"));
+        var second = await _context.Generation.GenerateResourcesAsync(_context.Tree, Plan("/Second"));
         Assert.True(second.HasSucceeded, second.HasFailed ? second.AsError.Reason : null);
         var merged = new XmlTableManifestReader(plan.ManifestSchemaFileName).LoadFromFile(_context.ManifestFile).AsSuccess.Result;
         Assert.Equal(["/Generated", "/Second"], merged.Generations.Select(x => x.Folder));
@@ -181,7 +181,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
     {
         var other = await AddUnsavedPalette();
 
-        var result = await _context.Service.GenerateResourcesAsync(_context.Tree, Plan());
+        var result = await _context.Generation.GenerateResourcesAsync(_context.Tree, Plan());
 
         Assert.True(result.HasSucceeded, result.HasFailed ? result.AsError.Reason : null);
         Assert.Equal("unsaved", File.ReadAllText(other.DiskLocation!));
@@ -193,7 +193,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
     {
         var other = await AddUnsavedPalette();
 
-        var result = await _context.Service.GenerateResourcesAsync(_context.Tree, Plan(), saveProject: true);
+        var result = await _context.Generation.GenerateResourcesAsync(_context.Tree, Plan(), saveProject: true);
 
         Assert.True(result.HasSucceeded, result.HasFailed ? result.AsError.Reason : null);
         Assert.NotEqual("unsaved", File.ReadAllText(other.DiskLocation!));
@@ -212,7 +212,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         var before = _context.Snapshot();
         _changes.Clear();
 
-        var result = await _context.Service.GenerateResourcesAsync(_context.Tree, plan);
+        var result = await _context.Generation.GenerateResourcesAsync(_context.Tree, plan);
 
         Assert.True(result.HasFailed);
         Assert.Contains("'/Generated/Tilesets/General' clashes with '/Generated/Tilesets/general'", result.AsError.Reason);
@@ -224,7 +224,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
     [Fact]
     public async Task FindGenerationConflicts_ListsClashWithoutWriting()
     {
-        Assert.Empty(_context.Service.FindGenerationConflicts(_context.Tree, Plan()));
+        Assert.Empty(_context.Generation.FindGenerationConflicts(_context.Tree, Plan()));
 
         var folder = (await _context.Service.CreateNewFolderAsync(_context.Tree.Root, "Generated")).AsSuccess.Result;
         var tilesets = (await _context.Service.CreateNewFolderAsync(folder, "Tilesets")).AsSuccess.Result;
@@ -235,7 +235,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         var before = _context.Snapshot();
         _changes.Clear();
 
-        var conflicts = _context.Service.FindGenerationConflicts(_context.Tree, plan);
+        var conflicts = _context.Generation.FindGenerationConflicts(_context.Tree, plan);
 
         Assert.Contains("'/Generated/Tilesets/General' clashes with '/Generated/Tilesets/general'", conflicts);
         _context.AssertUnchanged(before);
@@ -253,7 +253,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
 
         try
         {
-            var result = await _context.Service.GenerateResourcesAsync(_context.Tree, plan);
+            var result = await _context.Generation.GenerateResourcesAsync(_context.Tree, plan);
 
             Assert.True(result.HasFailed);
             _context.AssertUnchanged(before);
@@ -268,7 +268,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
             File.SetAttributes(_context.ManifestFile, FileAttributes.Normal);
         }
 
-        Assert.True((await _context.Service.GenerateResourcesAsync(_context.Tree, Plan())).HasSucceeded);
+        Assert.True((await _context.Generation.GenerateResourcesAsync(_context.Tree, Plan())).HasSucceeded);
     }
 
     [Fact]
@@ -278,8 +278,8 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         File.WriteAllBytes(Path.Combine(_context.Directory, "standalone.bin"), FireRedShapedData.Create());
         var standalone = _context.Service.OpenDataFile(Path.Combine(_context.Directory, "standalone.bin")).AsSuccess.Result;
 
-        var planResult = _context.Service.PlanGeneration(standalone, "/Rom", LoadDefinition(), "/Generated");
-        var generateResult = await _context.Service.GenerateResourcesAsync(standalone, plan);
+        var planResult = _context.Generation.PlanGeneration(standalone, "/Rom", LoadDefinition(), "/Generated");
+        var generateResult = await _context.Generation.GenerateResourcesAsync(standalone, plan);
 
         Assert.Contains("standalone file", planResult.AsError.Reason);
         Assert.Contains("standalone file", generateResult.AsError.Reason);
@@ -293,7 +293,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
 
     private async Task GenerateAsync(GenerationPlan? plan = null, bool confirmRemovals = false)
     {
-        var result = await _context.Service.GenerateResourcesAsync(_context.Tree, plan ?? Plan(), confirmRemovals: confirmRemovals);
+        var result = await _context.Generation.GenerateResourcesAsync(_context.Tree, plan ?? Plan(), confirmRemovals: confirmRemovals);
         Assert.True(result.HasSucceeded, result.HasFailed ? result.AsError.Reason : null);
     }
 
@@ -320,6 +320,70 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
     private async Task MoveAsync(string key, string folderKey) =>
         Assert.True((await _context.Service.MoveNodeAsync(Node(key), Node(folderKey))).HasSucceeded);
 
+    // The context's tree changes on reopen, so this subscribes to the current one
+    private List<ProjectTreeChange> CaptureChanges()
+    {
+        var changes = new List<ProjectTreeChange>();
+        _context.Tree.Changed += (_, change) => changes.Add(change);
+        return changes;
+    }
+
+    private HashSet<IProjectResource> TreeItems() =>
+        _context.Tree.EnumerateDepthFirst().Select(x => x.Item).ToHashSet<IProjectResource>(ReferenceEqualityComparer.Instance);
+
+    private async Task AssertAffectedLeaveTreeAsync(GenerationPlan plan, bool confirmRemovals = false)
+    {
+        var before = TreeItems();
+
+        await GenerateAsync(plan, confirmRemovals);
+
+        before.ExceptWith(TreeItems());
+        Assert.NotEmpty(before);
+        Assert.True(plan.Regeneration!.Affected.SetEquals(before),
+            $"Affected: {string.Join(", ", plan.Regeneration.Affected.Select(x => x.Name))}; left the tree: {string.Join(", ", before.Select(x => x.Name))}");
+    }
+
+    [Fact]
+    public async Task Regenerate_ChangedResource_RaisesReplacedOnly()
+    {
+        await GenerateAsync();
+        await _context.ReopenAsync(RepointMapA);
+        var oldMap = Node(MapA);
+        var plan = Plan();
+        var changes = CaptureChanges();
+
+        await GenerateAsync(plan);
+
+        var change = Assert.Single(changes);
+        Assert.Equal(ProjectTreeChangeKind.Replaced, change.Kind);
+        Assert.Same(oldMap, change.OldNode);
+        Assert.Same(Node(MapA), change.Node);
+        Assert.Same(change.Node.Parent, change.Parent);
+    }
+
+    [Fact]
+    public async Task Plan_Affected_EqualsResourcesRegenerationReplaces()
+    {
+        await GenerateAsync();
+        await _context.AddCompressedChainAsync(GeneralTiles);
+        await _context.ReopenAsync(FireRedShapedData.RepointPrimaryTilesNested);
+        var plan = Plan();
+        Assert.Contains(Node("/Z/C3").Item, plan.Regeneration!.Affected);
+
+        await AssertAffectedLeaveTreeAsync(plan);
+    }
+
+    [Fact]
+    public async Task Plan_Affected_EqualsResourcesRegenerationRemoves()
+    {
+        await GenerateAsync();
+        DropLastSecondaryPalette();
+        var plan = Plan();
+        Assert.Contains(Node(Palette12).Item, plan.Regeneration!.Affected);
+
+        await AssertAffectedLeaveTreeAsync(plan, confirmRemovals: true);
+    }
+
     [Fact]
     public async Task Regenerate_FindsMovedResourceByHash()
     {
@@ -343,7 +407,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         File.Copy(_context.RomFile, Path.Combine(_context.Directory, "rom2.bin"));
         Assert.True((await _context.Service.AddResourceAsync(_context.Tree.Root, new FileDataSource("Rom2", Path.Combine(_context.Directory, "rom2.bin")))).HasSucceeded);
 
-        var result = _context.Service.PlanGeneration(_context.Tree, "/Rom2", LoadDefinition(), "/Generated");
+        var result = _context.Generation.PlanGeneration(_context.Tree, "/Rom2", LoadDefinition(), "/Generated");
 
         Assert.True(result.HasFailed);
         Assert.Contains("'/Rom'", result.AsError.Reason);
@@ -380,7 +444,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         var plan = Plan();
         var border = Assert.Single(plan.Regeneration!.Resources, x => x.Entry?.Entry.Key == Border);
         Assert.Equal((RegenerationKind.Changed, renamed), (border.Kind, border.TargetKey));
-        Assert.Empty(_context.Service.FindGenerationConflicts(_context.Tree, plan));
+        Assert.Empty(_context.Generation.FindGenerationConflicts(_context.Tree, plan));
 
         await GenerateAsync(plan);
 
@@ -505,7 +569,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         var before = _context.Snapshot();
         _changes.Clear();
 
-        var result = await _context.Service.GenerateResourcesAsync(_context.Tree, plan);
+        var result = await _context.Generation.GenerateResourcesAsync(_context.Tree, plan);
 
         Assert.True(result.HasFailed);
         Assert.Contains("would remove 1 resources", result.AsError.Reason);
@@ -554,17 +618,21 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         var before = _context.Snapshot();
         var nodes = _context.Tree.EnumerateDepthFirst().ToList();
         var mapNode = Node(MapA);
+        var changes = CaptureChanges();
         File.SetAttributes(_context.ManifestFile, FileAttributes.ReadOnly);
 
         try
         {
-            var result = await _context.Service.GenerateResourcesAsync(_context.Tree, plan);
+            var result = await _context.Generation.GenerateResourcesAsync(_context.Tree, plan);
 
             Assert.True(result.HasFailed);
             _context.AssertUnchanged(before);
             Assert.Equal(nodes, _context.Tree.EnumerateDepthFirst().ToList());
             Assert.Same(mapNode, Node(MapA));
             Assert.Same(mapNode.Item, ((MetatileMapNode)Node(MapA)).Item);
+            Assert.Collection(changes,
+                x => Assert.Equal((ProjectTreeChangeKind.Replaced, mapNode), (x.Kind, x.OldNode!)),
+                x => Assert.Equal((ProjectTreeChangeKind.Replaced, mapNode, changes[0].Node), (x.Kind, x.Node, x.OldNode!)));
         }
         finally
         {
@@ -573,6 +641,37 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
 
         await GenerateAsync(Plan());
         Assert.Equal(FireRedShapedData.FreeSpace, Assert.IsType<MetatileMapModel>(Node(MapA).Model).MapOffset);
+    }
+
+    [Fact]
+    public async Task Regenerate_TransactionFails_SwapsBackResourceMovedIntoCreatedFolder()
+    {
+        await GenerateAsync();
+        _context.EditDefinition(x => x.Replace("<folder>Borders/", "<folder>Edges/"));
+        var plan = Plan();
+        Assert.Equal(RegenerationKind.Changed, Regenerated(plan, "/Generated/Edges/Pallet Town/Pallet Town Border").Kind);
+        var before = _context.Snapshot();
+        var nodes = _context.Tree.EnumerateDepthFirst().ToList();
+        var borderNode = Node(Border);
+        var changes = CaptureChanges();
+        File.SetAttributes(_context.ManifestFile, FileAttributes.ReadOnly);
+
+        try
+        {
+            var result = await _context.Generation.GenerateResourcesAsync(_context.Tree, plan);
+
+            Assert.True(result.HasFailed);
+            _context.AssertUnchanged(before);
+            Assert.Equal(nodes, _context.Tree.EnumerateDepthFirst().ToList());
+            Assert.False(_context.Tree.TryGetNode("/Generated/Edges", out _));
+            var forward = Assert.Single(changes, x => x.Kind == ProjectTreeChangeKind.Replaced && x.OldNode == borderNode);
+            Assert.Single(changes, x => x.Kind == ProjectTreeChangeKind.Replaced && x.Node == borderNode && x.OldNode == forward.Node);
+            Assert.DoesNotContain(changes, x => x.Kind == ProjectTreeChangeKind.Added && x.Node == borderNode);
+        }
+        finally
+        {
+            File.SetAttributes(_context.ManifestFile, FileAttributes.Normal);
+        }
     }
 
     [Fact]
@@ -632,6 +731,49 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Regenerate_CompressedChainOverReplacedCompressedData_RebuildsEveryLink()
+    {
+        await GenerateAsync();
+        await _context.AddCompressedChainAsync(GeneralTiles);
+        await _context.ReopenAsync(FireRedShapedData.RepointPrimaryTilesNested);
+        var order = _context.Tree.EnumerateDepthFirst().ToList();
+        Assert.True(order.IndexOf(Node("/Z/C3")) < order.IndexOf(Node("/A/C2")));
+
+        var plan = Plan();
+        Assert.Equal(RegenerationKind.Changed, Regenerated(plan, GeneralTiles).Kind);
+        await GenerateAsync(plan);
+
+        var c2 = (CompressedDataSource)Node("/A/C2").Item;
+        var c3 = (CompressedDataSource)Node("/Z/C3").Item;
+        Assert.Same(Node(GeneralTiles).Item, c2.Parent);
+        Assert.Same(c2, c3.Parent);
+        Assert.Equal(FireRedShapedData.NestedPayload, c3.Read(BitAddress.Zero, FireRedShapedData.NestedPayload.Length * 8));
+
+        foreach (var source in _context.Tree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataSource>())
+            _ = source.Length;
+    }
+
+    [Fact]
+    public async Task Regenerate_KeptRemovalBlocksAnother_ReportsBoth()
+    {
+        const string viridianSet = "/Generated/Tilesets/Viridian City";
+        await _context.ReopenAsync(rom =>
+            BitConverter.GetBytes((uint)(GbaAddressMapper.RomBase + FireRedShapedData.SecondaryPalettes + 0x100)).CopyTo(rom, FireRedShapedData.SecondaryB + 8));
+        await GenerateAsync();
+        var rom = (DataSource)Node("/Rom").Item;
+        var user = new MetatileMap("User", rom, FireRedShapedData.BlocksB, MapFormatTests.LoadShippedFormats().Find("FRLG Block")!, MapScreenLayout.Linear, 2, 2,
+            [new MetatileMapSet((MetatileSet)Node(General).Item, 0), new MetatileMapSet((MetatileSet)Node(viridianSet).Item, 640)]);
+        Assert.True((await _context.Service.AddResourceAsync(_context.Tree.Root, user)).HasSucceeded);
+        _context.EditDefinition(x => x.Replace("<output id=\"tilesetSet\" record=\"Tileset\"", "<output id=\"tilesetSet\" record=\"Tileset\" when=\"address != 0x240\""));
+
+        var lines = Plan().Regeneration!.SummaryLines(false).ToList();
+
+        Assert.Contains($"Kept referenced {viridianSet}: used by /User", lines);
+        Assert.Contains($"Kept referenced /Generated/Tilesets/Palettes/Viridian City 7: used by {viridianSet}", lines);
+        Assert.Contains("Removed /Generated/Maps/Viridian City/Viridian City 1", lines);
+    }
+
+    [Fact]
     public async Task Regenerate_PaletteOnReplacedCompressedData_StillReadsColors()
     {
         await GenerateAsync();
@@ -657,6 +799,101 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         Assert.True(saveResource.HasSucceeded, saveResource.HasFailed ? saveResource.AsError.Reason : null);
         var saveProject = await _context.Service.SaveProjectAsync(_context.Tree);
         Assert.True(saveProject.HasSucceeded, saveProject.HasFailed ? saveProject.AsError.Reason : null);
+    }
+
+    private const string GeneralGraphics = "/Generated/Tilesets/Compressed/General Graphics";
+
+    private async Task<string> AddUserPaletteAndRenameTilesAsync()
+    {
+        await GenerateAsync();
+        var tiles = (DataSource)Node(GeneralTiles).Item;
+        var user = new Palette("User", new ColorFactory(), ColorModel.Bgr15, [new FileColorSource(0, Endian.Little)], false, PaletteStorageSource.ProjectXml, tiles);
+        Assert.True((await _context.Service.AddResourceAsync(_context.Tree.Root, user)).HasSucceeded);
+        _context.EditDefinition(x => x.Replace("{name:tilesetSet} Tiles", "{name:tilesetSet} Graphics"));
+        return Node(GeneralTiles).DiskLocation!;
+    }
+
+    [Fact]
+    public async Task Regenerate_RenamedResource_DependentsWrittenInSameTransaction()
+    {
+        var oldFile = await AddUserPaletteAndRenameTilesAsync();
+        var userFile = Node("/User").DiskLocation!;
+
+        await GenerateAsync();
+
+        Assert.Contains($"\"{GeneralGraphics}\"", File.ReadAllText(userFile));
+        Assert.False(File.Exists(oldFile));
+        TestPaths.AssertNoTransactionFiles(_context.Directory);
+        TestPaths.AssertNoTransactionFiles(_context.Definitions.Directory);
+
+        await _context.ReopenAsync();
+        Assert.Same(Node(GeneralGraphics).Item, ((Palette)Node("/User").Item).DataSource);
+    }
+
+    [Fact]
+    public async Task Regenerate_RenamedResource_SaveProject_WritesDependentsAndRemovesOldFile()
+    {
+        var oldFile = await AddUserPaletteAndRenameTilesAsync();
+        var userFile = Node("/User").DiskLocation!;
+
+        var result = await _context.Generation.GenerateResourcesAsync(_context.Tree, Plan(), saveProject: true);
+
+        Assert.True(result.HasSucceeded, result.HasFailed ? result.AsError.Reason : null);
+        Assert.Contains($"\"{GeneralGraphics}\"", File.ReadAllText(userFile));
+        Assert.False(File.Exists(oldFile));
+        TestPaths.AssertNoTransactionFiles(_context.Directory);
+        TestPaths.AssertNoTransactionFiles(_context.Definitions.Directory);
+
+        await _context.ReopenAsync();
+        Assert.False(_context.Tree.TryGetNode(GeneralTiles, out _));
+        Assert.Same(Node(GeneralGraphics).Item, ((Palette)Node("/User").Item).DataSource);
+    }
+
+    [Fact]
+    public async Task Regenerate_DependentWriteFails_KeepsRenamedResourceFile()
+    {
+        var oldFile = await AddUserPaletteAndRenameTilesAsync();
+        var userFile = Node("/User").DiskLocation!;
+        var plan = Plan();
+        var before = _context.Snapshot();
+        var nodes = _context.Tree.EnumerateDepthFirst().ToList();
+        File.SetAttributes(userFile, FileAttributes.ReadOnly);
+
+        try
+        {
+            var result = await _context.Generation.GenerateResourcesAsync(_context.Tree, plan);
+
+            Assert.True(result.HasFailed);
+            _context.AssertUnchanged(before);
+            Assert.True(File.Exists(oldFile));
+            Assert.Equal(nodes, _context.Tree.EnumerateDepthFirst().ToList());
+        }
+        finally
+        {
+            File.SetAttributes(userFile, FileAttributes.Normal);
+        }
+
+        await GenerateAsync(Plan());
+        Assert.Contains($"\"{GeneralGraphics}\"", File.ReadAllText(userFile));
+        Assert.False(File.Exists(oldFile));
+    }
+
+    [Fact]
+    public async Task GenerateAndSaveProject_Concurrent_BothSucceed_NoLeftoverFiles()
+    {
+        var other = await AddUnsavedPalette();
+        var plan = Plan();
+
+        var generate = _context.Generation.GenerateResourcesAsync(_context.Tree, plan);
+        var save = _context.Service.SaveProjectAsync(_context.Tree);
+        var results = await Task.WhenAll(generate, save);
+
+        Assert.All(results, x => Assert.True(x.HasSucceeded, x.HasFailed ? x.AsError.Reason : null));
+        Assert.NotEqual("unsaved", File.ReadAllText(other.DiskLocation!));
+        Assert.True(File.Exists(Node(MapA).DiskLocation));
+        Assert.True(File.Exists(_context.ManifestFile));
+        TestPaths.AssertNoTransactionFiles(_context.Directory);
+        TestPaths.AssertNoTransactionFiles(_context.Definitions.Directory);
     }
 
     [Fact]
@@ -746,7 +983,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
     private GenerationPlan PlanFf4()
     {
         var definition = _context.Definitions.Load("Ff4Synthetic.table.xml").AsSuccess.Result;
-        var result = _context.Service.PlanGeneration(_context.Tree, "/Ff4", definition, "/Monsters");
+        var result = _context.Generation.PlanGeneration(_context.Tree, "/Ff4", definition, "/Monsters");
         Assert.True(result.HasSucceeded, result.HasFailed ? result.AsError.Reason : null);
         return result.AsSuccess.Result;
     }
@@ -766,7 +1003,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         Assert.Equal((RegenerationKind.Changed, Pal4), (renamed.Kind, renamed.TargetKey));
         Assert.Equal(RegenerationKind.Added, Regenerated(plan, Pal3).Kind);
         Assert.Equal(RegenerationKind.Unchanged, Regenerated(plan, "/Monsters/02 Golbez").Kind);
-        Assert.Empty(_context.Service.FindGenerationConflicts(_context.Tree, plan));
+        Assert.Empty(_context.Generation.FindGenerationConflicts(_context.Tree, plan));
 
         await GenerateAsync(plan);
 
@@ -782,7 +1019,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         var pal3 = Node(Pal3).Item;
 
         var plan = PlanFf4();
-        Assert.Empty(_context.Service.FindGenerationConflicts(_context.Tree, plan));
+        Assert.Empty(_context.Generation.FindGenerationConflicts(_context.Tree, plan));
         Assert.All(plan.Regeneration!.Resources.Where(x => x.Planned.Type == "palette"), x => Assert.Equal(RegenerationKind.Unchanged, x.Kind));
         Assert.Empty(plan.Regeneration.Removed);
         Assert.Equal(["re-paletted"], Regenerated(plan, "/Monsters/00 Imp").ChangeKinds);

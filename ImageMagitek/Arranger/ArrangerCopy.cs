@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Drawing;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
 using ImageMagitek.Project;
+using ImageMagitek.Tilemaps;
 
 namespace ImageMagitek;
 
@@ -40,7 +41,7 @@ public abstract class ArrangerCopy
     public int Height { get; protected set; }
 }
 
-public sealed class ElementCopy : ArrangerCopy
+public class ElementCopy : ArrangerCopy
 {
     /// <summary>
     /// Elements to be copied into the destination
@@ -50,7 +51,7 @@ public sealed class ElementCopy : ArrangerCopy
     /// <summary>
     /// Originating project resource
     /// </summary>
-    public IProjectResource ProjectResource { get; set; }
+    public IProjectResource? ProjectResource { get; set; }
 
     /// <summary>
     /// Layout of the source arranger
@@ -70,16 +71,16 @@ public sealed class ElementCopy : ArrangerCopy
     /// <summary>
     /// Creates a copy of an Arranger's ArrangerElements
     /// </summary>
-    /// <param name="source">Arranger containing the elements to be copied from</param>
+    /// <param name="source">View containing the elements to be copied from</param>
     /// <param name="elementX">Starting x-coordinate of copy in element coordinates</param>
     /// <param name="elementY">Starting y-coordinate of copy in element coordinates</param>
     /// <param name="copyWidth">Width of copy in element coordinates</param>
     /// <param name="copyHeight">Height of copy in element coordinates</param>
-    public ElementCopy(Arranger source, int elementX, int elementY, int copyWidth, int copyHeight)
+    public ElementCopy(IArrangerView source, int elementX, int elementY, int copyWidth, int copyHeight)
     {
         ColorType = source.ColorType;
         Layout = source.Layout;
-        ProjectResource = source;
+        ProjectResource = source as IProjectResource;
         X = elementX;
         Y = elementY;
         Width = copyWidth;
@@ -98,11 +99,35 @@ public sealed class ElementCopy : ArrangerCopy
     }
 }
 
+/// <summary>
+/// An element copy from a tilemap's working view that also carries each copied cell's entry, so a paste into the same tilemap keeps its slots and flips
+/// </summary>
+public sealed class TilemapElementCopy : ElementCopy
+{
+    /// <summary>
+    /// The entry of each copied cell indexed [x, y] like <see cref="ElementCopy.Elements"/>
+    /// </summary>
+    public MapEntry?[,] Entries { get; }
+
+    public TilemapElementCopy(TilemapView source, int elementX, int elementY, int copyWidth, int copyHeight)
+        : base(source, elementX, elementY, copyWidth, copyHeight)
+    {
+        ProjectResource = source.Tilemap;
+        Entries = new MapEntry?[copyWidth, copyHeight];
+
+        for (int y = 0; y < copyHeight; y++)
+        {
+            for (int x = 0; x < copyWidth; x++)
+                Entries[x, y] = source.Grid[x + elementX, y + elementY];
+        }
+    }
+}
+
 public sealed class IndexedPixelCopy : ArrangerCopy
 {
     public IndexedImage Image { get; }
 
-    public IndexedPixelCopy(Arranger source, int pixelX, int pixelY, int width, int height)
+    public IndexedPixelCopy(IArrangerView source, int pixelX, int pixelY, int width, int height)
     {
         ColorType = source.ColorType;
         ElementPixelSize = source.ElementPixelSize;
@@ -119,7 +144,7 @@ public sealed class DirectPixelCopy : ArrangerCopy
 {
     public DirectImage Image { get; }
 
-    public DirectPixelCopy(Arranger source, int pixelX, int pixelY, int width, int height)
+    public DirectPixelCopy(IArrangerView source, int pixelX, int pixelY, int width, int height)
     {
         ColorType = source.ColorType;
         ElementPixelSize = source.ElementPixelSize;

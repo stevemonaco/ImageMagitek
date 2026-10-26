@@ -18,7 +18,7 @@ public sealed class EditorPaletteList
         _paletteStore = paletteStore;
     }
 
-    public IReadOnlyList<Palette> Build(Arranger arranger)
+    public IReadOnlyList<Palette> Build(IArrangerView arranger)
     {
         if (arranger is SequentialArranger sequential)
             return _paletteStore.GlobalPalettes.Where(sequential.CanUsePalette).ToList();
@@ -31,7 +31,7 @@ public sealed class EditorPaletteList
             .ToList();
     }
 
-    public Palette? Select(Arranger arranger, IReadOnlyList<Palette> palettes)
+    public Palette? Select(IArrangerView arranger, IReadOnlyList<Palette> palettes)
     {
         if (arranger is SequentialArranger { ActivePalette: { } active } && palettes.Contains(active))
             return active;

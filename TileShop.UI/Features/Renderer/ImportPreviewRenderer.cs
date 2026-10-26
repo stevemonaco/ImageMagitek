@@ -43,7 +43,7 @@ public sealed class ImportPreviewRenderer : IDisposable
     /// <summary>
     /// Rebuilds the layers for a new staged import; with no preview only the arranger's current contents are shown
     /// </summary>
-    public void SetPreview(Arranger arranger, ImageImportPreview? preview)
+    public void SetPreview(IArrangerView arranger, ImageImportPreview? preview)
     {
         DisposeLayers();
         _preview = preview;

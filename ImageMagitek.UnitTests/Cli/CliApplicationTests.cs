@@ -32,7 +32,7 @@ public sealed class CliApplicationTests : IDisposable
     private readonly string _defaultLogFile;
     private readonly StringWriter _output = new();
     private readonly ColorFactory _colorFactory = new();
-    private Func<ILoggerFactory, IProjectService> _bootstrap;
+    private Func<ILoggerFactory, (IProjectService, IResourceGenerationService)> _bootstrap;
 
     public CliApplicationTests()
     {
@@ -41,7 +41,7 @@ public sealed class CliApplicationTests : IDisposable
         _projectFile = ProjectFixtures.Create(ProjectFixtures.AllFeatures, _directory);
         _imageDirectory = Path.Combine(_directory, "images");
         _defaultLogFile = Path.Combine(_directory, "app", "errorlogCLI.txt");
-        _bootstrap = _ => new ProjectService(ProjectFixtures.CreateSerializerFactory(_colorFactory));
+        _bootstrap = _ => Services(ProjectFixtures.CreateSerializerFactory(_colorFactory), x => new ProjectService(x));
 
         WriteResource("Palettes/Simple.xml", """
             <palette datafile="/main" color="Rgba32" zeroindextransparent="false">
@@ -126,10 +126,16 @@ public sealed class CliApplicationTests : IDisposable
             """);
 
         var paths = BootstrapPaths.FromDirectory(AppContext.BaseDirectory) with { PluginsPath = pluginsPath };
-        _bootstrap = loggerFactory => CliBootstrap.CreateProjectService(paths, loggerFactory, _output);
+        _bootstrap = loggerFactory => CliBootstrap.CreateProjectServices(paths, loggerFactory, _output);
     }
 
-    private sealed class YieldingProjectService(IProjectSerializerFactory serializerFactory) : ProjectService(serializerFactory)
+    private static (IProjectService, IResourceGenerationService) Services(IProjectSerializerFactory serializerFactory, Func<ProjectWorkspace, ProjectService> createService)
+    {
+        var workspace = new ProjectWorkspace(serializerFactory);
+        return (createService(workspace), new ResourceGenerationService(workspace));
+    }
+
+    private sealed class YieldingProjectService(ProjectWorkspace workspace) : ProjectService(workspace)
     {
         public override async Task<MagitekResults<ProjectTree>> OpenProjectFileAsync(string projectFileName)
         {
@@ -138,7 +144,7 @@ public sealed class CliApplicationTests : IDisposable
         }
     }
 
-    private sealed class ThrowingProjectService(IProjectSerializerFactory serializerFactory) : ProjectService(serializerFactory)
+    private sealed class ThrowingProjectService(ProjectWorkspace workspace) : ProjectService(workspace)
     {
         public override Task<MagitekResults<ProjectTree>> OpenProjectFileAsync(string projectFileName) =>
             throw new InvalidOperationException("Open failed on purpose");
@@ -149,7 +155,7 @@ public sealed class CliApplicationTests : IDisposable
     [Fact]
     public async Task OpenYields_ReturnsVerbCode()
     {
-        _bootstrap = _ => new YieldingProjectService(ProjectFixtures.CreateSerializerFactory(_colorFactory));
+        _bootstrap = _ => Services(ProjectFixtures.CreateSerializerFactory(_colorFactory), x => new YieldingProjectService(x));
 
         Assert.Equal(0, await RunAsync("export", _projectFile, _imageDirectory, SimpleKey));
         Assert.True(File.Exists(ImagePath(SimpleKey)));
@@ -219,7 +225,7 @@ public sealed class CliApplicationTests : IDisposable
             File.Copy(file, Path.Combine(codecsPath, Path.GetFileName(file)));
         File.WriteAllText(Path.Combine(codecsPath, "Broken.xml"), "<not a codec");
         var paths = BootstrapPaths.FromDirectory(AppContext.BaseDirectory) with { CodecsPath = codecsPath };
-        _bootstrap = loggerFactory => CliBootstrap.CreateProjectService(paths, loggerFactory, _output);
+        _bootstrap = loggerFactory => CliBootstrap.CreateProjectServices(paths, loggerFactory, _output);
 
         Assert.Equal(0, await RunAsync("print", _projectFile));
         var lines = Output.Split(Environment.NewLine);
@@ -256,7 +262,7 @@ public sealed class CliApplicationTests : IDisposable
     [Fact]
     public async Task OpenThrows_Exits2()
     {
-        _bootstrap = _ => new ThrowingProjectService(ProjectFixtures.CreateSerializerFactory(_colorFactory));
+        _bootstrap = _ => Services(ProjectFixtures.CreateSerializerFactory(_colorFactory), x => new ThrowingProjectService(x));
 
         Assert.Equal(-2, await RunAsync("print", _projectFile));
         Assert.Contains("Open failed on purpose", Output);
@@ -390,7 +396,7 @@ public sealed class CliApplicationTests : IDisposable
     {
         var serializerFactory = new XmlProjectSerializerFactory(ProjectFixtures.ResourceSchemaPath, Fixtures.CodecFixture.Shared.CodecFactory,
             _colorFactory, [ProjectFixtures.DefaultPalette], new ImageMagitek.Compression.CompressorFactory(), Tilemaps.MapFormatTests.LoadShippedFormats());
-        _bootstrap = _ => new ProjectService(serializerFactory);
+        _bootstrap = _ => Services(serializerFactory, x => new ProjectService(x));
     }
 
     private void WriteSimpleData(int offset, params byte[] bytes)

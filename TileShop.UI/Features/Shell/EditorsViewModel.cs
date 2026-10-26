@@ -118,7 +118,8 @@ public partial class EditorsViewModel : ObservableRecipient
     {
         if (change.Kind == ProjectTreeChangeKind.Renamed)
         {
-            foreach (var editor in Editors.Where(x => ReferenceEquals(x.Resource, change.Node.Item) || ReferenceEquals(x.OriginatingProjectResource, change.Node.Item)))
+            var renamed = ResourceSet([change.Node.Item]);
+            foreach (var editor in Editors.Where(x => x.EditsAny(renamed)))
                 editor.DisplayName = change.Node.Name;
 
             if (change.Node.Item is Palette palette)
@@ -133,19 +134,71 @@ public partial class EditorsViewModel : ObservableRecipient
         }
         else if (change.Kind == ProjectTreeChangeKind.Removed)
         {
-            var removedResources = change.Node.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>()
-                .Select(x => (object)x.Item)
-                .ToHashSet(ReferenceEqualityComparer.Instance);
+            var removedResources = ResourceSet(change.Node.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>().Select(x => x.Item));
 
-            RemoveEditors(Editors.Where(x => removedResources.Contains(x.Resource) || removedResources.Contains(x.OriginatingProjectResource)).ToList());
+            RemoveEditors(Editors.Where(x => x.EditsAny(removedResources)).ToList());
+            ClearClipboardIfReferencesAny(removedResources);
+        }
+        else if (change.Kind == ProjectTreeChangeKind.Replaced)
+        {
+            var replaced = ResourceSet([change.OldNode!.Item]);
 
-            if (GraphicsEditorViewModel.ClearClipboardIfReferencesAny(removedResources))
-            {
-                foreach (var editor in Editors.OfType<GraphicsEditorViewModel>())
-                    editor.NotifyClipboardChanged();
-            }
+            foreach (var editor in Editors.Where(x => x.EditsAny(replaced)).ToList())
+                ReplaceEditor(editor, change.Node.Item);
+
+            ClearClipboardIfReferencesAny(replaced);
         }
     }
+
+    private static HashSet<IProjectResource> ResourceSet(IEnumerable<IProjectResource> resources) =>
+        resources.ToHashSet<IProjectResource>(ReferenceEqualityComparer.Instance);
+
+    private void ClearClipboardIfReferencesAny(IReadOnlySet<IProjectResource> resources)
+    {
+        if (!GraphicsEditorViewModel.ClearClipboardIfReferencesAny(resources))
+            return;
+
+        foreach (var editor in Editors.OfType<GraphicsEditorViewModel>())
+            editor.NotifyClipboardChanged();
+    }
+
+    private void ReplaceEditor(ResourceEditorBaseViewModel editor, IProjectResource resource)
+    {
+        var index = Editors.IndexOf(editor);
+
+        if (CreateEditor(resource).Editor is not { } replacement)
+        {
+            RemoveEditors([editor]);
+            return;
+        }
+
+        var wasActive = ReferenceEquals(ActiveEditor, editor);
+        editor.OnClosing();
+        Editors[index] = replacement;
+
+        if (wasActive)
+            ActiveEditor = replacement;
+    }
+
+    /// <summary>
+    /// Replaces each of <paramref name="editors"/> still open with a new editor on its resource, in the same tab, or closes it when its resource left the tree
+    /// </summary>
+    public void ReopenEditors(IReadOnlyCollection<ResourceEditorBaseViewModel> editors)
+    {
+        foreach (var editor in editors.Where(Editors.Contains).ToList())
+        {
+            if (_projectService.FindContainingProject(editor.OriginatingProjectResource) is not null)
+                ReplaceEditor(editor, editor.OriginatingProjectResource);
+            else
+                RemoveEditors([editor]);
+        }
+    }
+
+    /// <summary>
+    /// The open editors, in tab order, that depend on any of <paramref name="resources"/>
+    /// </summary>
+    public IReadOnlyList<ResourceEditorBaseViewModel> FindAffected(IReadOnlySet<IProjectResource> resources) =>
+        Editors.Where(x => x.DependsOn(resources)).ToList();
 
     /// <summary>
     /// Closes <paramref name="editors"/> without prompting, changing the active editor only when it was among them.
@@ -156,8 +209,7 @@ public partial class EditorsViewModel : ObservableRecipient
         foreach (var editor in editors)
         {
             Editors.Remove(editor);
-            if (editor is MetatileMapEditorViewModel mapEditor)
-                mapEditor.ShowAllLayers();
+            editor.OnClosing();
         }
 
         if (activeRemoved)
@@ -171,52 +223,30 @@ public partial class EditorsViewModel : ObservableRecipient
     /// <returns>False if the user cancelled</returns>
     public async Task<bool> ConfirmRemovalAsync(ResourceDeletionPlan plan)
     {
-        var changedResources = plan.Changes.Select(x => (object)x.Resource).ToHashSet(ReferenceEqualityComparer.Instance);
-        var affected = Editors
-            .Where(x => changedResources.Contains(x.Resource) || changedResources.Contains(x.OriginatingProjectResource))
-            .ToList();
+        var changedResources = ResourceSet(plan.Changes.Select(x => x.Resource));
+        var affected = Editors.Where(x => x.EditsAny(changedResources)).ToList();
 
-        foreach (var editor in affected)
-        {
-            if (await RequestSaveUserChanges(editor, false) == UserSaveAction.Cancel)
-                return false;
-        }
+        if ((await ResolveUnsavedChangesAsync(affected, UnsavedChangesPrompt.Closing())).Contains(UserSaveAction.Cancel))
+            return false;
 
-        var removedResources = plan.Changes.Where(x => x.Removed).Select(x => (object)x.Resource).ToHashSet(ReferenceEqualityComparer.Instance);
+        var removedResources = ResourceSet(plan.Changes.Where(x => x.Removed).Select(x => x.Resource));
         var danglingEditors = Editors.OfType<GraphicsEditorViewModel>()
-            .Where(x => x.IsModified && x.WorkingArranger is ScatteredArranger && !affected.Contains(x)
-                && ReferencesAny(x.WorkingArranger, removedResources))
-            .ToList();
+            .Where(x => x.IsModified && x.WorkingArranger is ScatteredArranger or TilemapView && !affected.Contains(x) && x.DependsOn(removedResources))
+            .ToList<ResourceEditorBaseViewModel>();
 
-        foreach (var editor in danglingEditors)
-        {
-            var discardResult = await _interactions.PromptAsync(PromptChoices.OkCancel, "Discard Changes",
-                $"'{editor.DisplayName}' has unsaved changes that use resources being deleted. These changes will be discarded.");
+        if ((await ResolveUnsavedChangesAsync(danglingEditors, UnsavedChangesPrompt.DiscardForDeletion)).Contains(UserSaveAction.Cancel))
+            return false;
 
-            if (discardResult != PromptResult.Accept)
-                return false;
-        }
-
-        foreach (var editor in danglingEditors)
-            editor.DiscardChanges();
-
-        RemoveEditors(affected.Where(x => !removedResources.Contains(x.Resource) && !removedResources.Contains(x.OriginatingProjectResource)).ToList());
+        RemoveEditors(affected.Where(x => !x.EditsAny(removedResources)).ToList());
         return true;
     }
-
-    /// <summary>
-    /// Whether any element of <paramref name="arranger"/> reads from, or has a codec palette in, <paramref name="resources"/>
-    /// </summary>
-    public static bool ReferencesAny(Arranger arranger, HashSet<object> resources) =>
-        arranger.EnumerateElements().OfType<ArrangerElement>()
-            .Any(el => resources.Contains(el.Source) || el.Codec is IIndexedCodec { Palette: { } palette } && resources.Contains(palette));
 
     public async Task<bool> CloseEditor(ResourceEditorBaseViewModel? editor)
     {
         if (editor is null)
             return true;
 
-        if (await RequestSaveUserChanges(editor, true) == UserSaveAction.Cancel)
+        if ((await ResolveUnsavedChangesAsync([editor], UnsavedChangesPrompt.Closing() with { SaveProject = true })).Contains(UserSaveAction.Cancel))
             return false;
 
         RemoveEditors([editor]);
@@ -240,34 +270,42 @@ public partial class EditorsViewModel : ObservableRecipient
         if (openedDocument is not null)
             return openedDocument;
 
-        if (await AlertIfMissingDataSourceAsync(resource, "Missing Data File"))
+        var (newDocument, alert) = CreateEditor(resource);
+        if (alert is { } shown)
+        {
+            await _interactions.AlertAsync(shown.Title, shown.Message);
             return null;
+        }
 
-        ResourceEditorBaseViewModel? newDocument;
+        if (newDocument is not null)
+            Editors.Add(newDocument);
+
+        return newDocument;
+    }
+
+    // Neither editor nor alert means the resource has no editor
+    private (ResourceEditorBaseViewModel? Editor, (string Title, string Message)? Alert) CreateEditor(IProjectResource resource)
+    {
+        if (FindMissingDataSource(resource) is { } missing)
+            return (null, ("Missing Data File", DescribeMissingDataSource(resource, missing)));
 
         switch (resource)
         {
             case Palette pal:
-                newDocument = new PaletteEditorViewModel(pal, _colorFactory, _projectService, _interactions, _fileRequests, _clipboard);
-                break;
+                return (new PaletteEditorViewModel(pal, _colorFactory, _projectService, _interactions, _fileRequests, _clipboard), null);
             case TilemapArranger { MapError: { } mapError }:
-                await _interactions.AlertAsync("Tilemap", mapError);
-                return null;
+                return (null, ("Tilemap", mapError));
             case MetatileMap { MapError: { } mapError }:
-                await _interactions.AlertAsync("Map Error", mapError);
-                return null;
+                return (null, ("Map Error", mapError));
             case MetatileMap map:
-                newDocument = new MetatileMapEditorViewModel(map, _preferencesStore.Preferences.Grid, _interactions, composite => ExportMetatileMapAsync(map, composite));
-                break;
+                return (new MetatileMapEditorViewModel(map, _preferencesStore.Preferences.Grid, _interactions, composite => ExportMetatileMapAsync(map, composite)), null);
             case MetatileSet:
-                newDocument = null;
-                break;
-            case Arranger arranger:
-                newDocument = new GraphicsEditorViewModel(arranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore, _loggerFactory.CreateLogger<GraphicsEditorViewModel>());
-                break;
+                return (null, null);
+            case TilemapArranger or Arranger:
+                return (new GraphicsEditorViewModel((IArrangerView)resource, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore,
+                    _loggerFactory.CreateLogger<GraphicsEditorViewModel>()), null);
             case CompressedDataSource { DecompressionError: { } error }:
-                await _interactions.AlertAsync("Compressed Data", error);
-                return null;
+                return (null, ("Compressed Data", error));
             case DataSource dataSource: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
                 var fileSource = dataSource as FileDataSource ?? (dataSource as CompressedDataSource)?.Parent as FileDataSource;
                 var extension = Path.GetExtension(fileSource?.FileLocation ?? "").ToLower();
@@ -281,31 +319,19 @@ public partial class EditorsViewModel : ObservableRecipient
 
                 var codec = _codecService.CodecFactory.CreateCodec(codecName);
                 if (codec is null)
-                {
-                    await _interactions.AlertAsync("Codec Error", $"Could not create Codec '{codecName}'");
-                    return null;
-                }
+                    return (null, ("Codec Error", $"Could not create Codec '{codecName}'"));
 
                 var newArranger = codec.Layout == ImageLayout.Tiled
                     ? new SequentialArranger(8, 16, dataSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec)
                     : new SequentialArranger(1, 1, dataSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec);
 
-                newDocument = CreateSequentialEditor(newArranger, dataSource);
-                break;
-            case ResourceFolder resourceFolder:
-                newDocument = null;
-                break;
-            case ImageProject project:
-                newDocument = null;
-                break;
+                return (CreateSequentialEditor(newArranger, dataSource), null);
+            case ResourceFolder:
+            case ImageProject:
+                return (null, null);
             default:
                 throw new NotSupportedException($"Project resource of type '{resource.GetType()}' is not supported");
         }
-
-        if (newDocument is not null)
-            Editors.Add(newDocument);
-
-        return newDocument;
     }
 
     private GraphicsEditorViewModel CreateSequentialEditor(SequentialArranger arranger, DataSource source) =>
@@ -385,7 +411,7 @@ public partial class EditorsViewModel : ObservableRecipient
     }
 
     /// <summary>
-    /// Alerts the user when <paramref name="resource"/> reads from a missing data file or is a tilemap whose map could not be read
+    /// Alerts the user when <paramref name="resource"/> reads from a missing data file or its contents cannot be read, such as a tilemap's map
     /// </summary>
     /// <returns>True if the resource's pixels are unavailable</returns>
     public async Task<bool> AlertIfUnavailableAsync(IProjectResource resource, string title)
@@ -393,30 +419,14 @@ public partial class EditorsViewModel : ObservableRecipient
         if (await AlertIfMissingDataSourceAsync(resource, title))
             return true;
 
-        var mapError = resource switch
-        {
-            TilemapArranger tilemap => tilemap.MapError,
-            MetatileMap map => map.MapError,
-            _ => null
-        };
-
-        if (mapError is null)
+        if ((resource as IUnavailableResource)?.UnavailableReason is not { } reason)
             return false;
 
-        await _interactions.AlertAsync(title, mapError);
+        await _interactions.AlertAsync(title, reason);
         return true;
     }
 
-    private static FileDataSource? FindMissingDataSource(IProjectResource resource) => resource switch
-    {
-        FileDataSource fileSource => fileSource.IsMissing ? fileSource : null,
-        CompressedDataSource { Parent: FileDataSource parentSource } => parentSource.IsMissing ? parentSource : null,
-        Palette { DataSource: FileDataSource paletteSource } => paletteSource.IsMissing ? paletteSource : null,
-        Arranger arranger => arranger.FindMissingDataSource(),
-        MetatileMap map => map.FindMissingDataSource(),
-        MetatileSet set => set.FindMissingDataSource(),
-        _ => null
-    };
+    private static FileDataSource? FindMissingDataSource(IProjectResource resource) => (resource as IUnavailableResource)?.FindMissingDataSource();
 
     private static string DescribeMissingDataSource(IProjectResource resource, FileDataSource missing) =>
         ReferenceEquals(resource, missing)
@@ -431,17 +441,16 @@ public partial class EditorsViewModel : ObservableRecipient
     {
         try
         {
-            var savedProjects = new HashSet<ProjectTree>();
+            var editors = Editors.Where(x => x.IsModified).ToList();
+            var actions = await ResolveUnsavedChangesAsync(editors, UnsavedChangesPrompt.Closing());
+            if (actions.Contains(UserSaveAction.Cancel))
+                return false;
 
-            foreach (var editor in Editors.Where(x => x.IsModified).ToList())
-            {
-                var userAction = await RequestSaveUserChanges(editor, false);
-                if (userAction == UserSaveAction.Cancel)
-                    return false;
-
-                if (userAction == UserSaveAction.Save && _projectService.FindContainingProject(editor.Resource) is { } projectTree)
-                    savedProjects.Add(projectTree);
-            }
+            var savedProjects = editors.Zip(actions)
+                .Where(x => x.Second == UserSaveAction.Save)
+                .Select(x => _projectService.FindContainingProject(x.First.Resource))
+                .OfType<ProjectTree>()
+                .ToHashSet();
 
             await SaveProjectsAsync(savedProjects);
             return true;
@@ -493,17 +502,53 @@ public partial class EditorsViewModel : ObservableRecipient
     }
 
     /// <summary>
-    /// Requests to the user if they want to save the specified editor and saves if necessary
+    /// Prompts for each modified editor in turn, stopping at the first Cancel
     /// </summary>
-    /// <param name="editor">Editor to save</param>
-    /// <param name="saveTree">The project tree is also saved upon a Save confirmation</param>
-    /// <param name="closing">How the prompt says the editor will close, such as "will be closed by regeneration"</param>
-    /// <returns>Action requested by user</returns>
-    public async Task<UserSaveAction> RequestSaveUserChanges(ResourceEditorBaseViewModel editor, bool saveTree, string closing = "will be closed")
+    /// <returns>The action for each editor prompted or skipped, in order, ending with Cancel when the user cancelled</returns>
+    public async Task<IReadOnlyList<UserSaveAction>> ResolveUnsavedChangesAsync(IReadOnlyList<ResourceEditorBaseViewModel> editors, UnsavedChangesPrompt prompt)
+    {
+        var actions = new List<UserSaveAction>();
+
+        foreach (var editor in editors)
+        {
+            var action = prompt.DiscardOnly ? await ConfirmDiscardAsync(editor, prompt) : await RequestSaveUserChanges(editor, prompt);
+            actions.Add(action);
+
+            if (action == UserSaveAction.Cancel)
+                return actions;
+        }
+
+        if (prompt.DiscardOnly)
+        {
+            foreach (var (editor, _) in editors.Zip(actions).Where(x => x.Second == UserSaveAction.Discard))
+                await DiscardChangesAsync(editor);
+        }
+
+        return actions;
+    }
+
+    private async Task<UserSaveAction> ConfirmDiscardAsync(ResourceEditorBaseViewModel editor, UnsavedChangesPrompt prompt)
+    {
+        if (!editor.IsModified)
+            return UserSaveAction.Unmodified;
+
+        var result = await _interactions.PromptAsync(PromptChoices.OkCancel, prompt.Title, prompt.Message(editor));
+        return result == PromptResult.Accept ? UserSaveAction.Discard : UserSaveAction.Cancel;
+    }
+
+    private static async Task DiscardChangesAsync(ResourceEditorBaseViewModel editor)
+    {
+        if (editor is PaletteEditorViewModel paletteEditor)
+            await paletteEditor.DiscardChangesAsync();
+        else
+            editor.DiscardChanges();
+    }
+
+    private async Task<UserSaveAction> RequestSaveUserChanges(ResourceEditorBaseViewModel editor, UnsavedChangesPrompt prompt)
     {
         if (editor.IsModified)
         {
-            var result = await _interactions.PromptAsync(PromptChoices.YesNoCancel, "Save changes", $"'{editor.DisplayName}' has been modified and {closing}. Save changes?");
+            var result = await _interactions.PromptAsync(PromptChoices.YesNoCancel, prompt.Title, prompt.Message(editor));
 
             if (result == PromptResult.Accept)
             {
@@ -511,7 +556,7 @@ public partial class EditorsViewModel : ObservableRecipient
                 if (editor.IsModified)
                     return UserSaveAction.Cancel;
 
-                if (saveTree && _projectService.FindContainingProject(editor.Resource) is { } projectTree)
+                if (prompt.SaveProject && _projectService.FindContainingProject(editor.Resource) is { } projectTree)
                 {
                     var saveTreeResult = await _projectService.SaveProjectAsync(projectTree);
                     await saveTreeResult.Match(
@@ -529,10 +574,8 @@ public partial class EditorsViewModel : ObservableRecipient
             }
             else if (result == PromptResult.Reject)
             {
-                if (editor is PaletteEditorViewModel paletteEditor)
-                    await paletteEditor.DiscardChangesAsync();
-                else
-                    editor.DiscardChanges();
+                if (prompt.DiscardOnNo)
+                    await DiscardChangesAsync(editor);
                 return UserSaveAction.Discard;
             }
             else if (result == PromptResult.Cancel)

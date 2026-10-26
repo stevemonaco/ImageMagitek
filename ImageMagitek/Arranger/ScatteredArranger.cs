@@ -126,22 +126,18 @@ public sealed class ScatteredArranger : Arranger
         return arranger;
     }
 
-    public override IEnumerable<IProjectResource> LinkedResources
+    /// <summary>
+    /// Resets every element that reads from one of <paramref name="sources"/>
+    /// </summary>
+    public void ResetElementsReading(IReadOnlySet<IProjectResource> sources)
     {
-        get
+        for (int y = 0; y < ArrangerElementSize.Height; y++)
         {
-            var set = new HashSet<IProjectResource>();
-
-            foreach (var el in EnumerateElements().OfType<ArrangerElement>())
+            for (int x = 0; x < ArrangerElementSize.Width; x++)
             {
-                if (el.Codec is IIndexedCodec codec && codec.Palette is not null)
-                    set.Add(codec.Palette);
-
-                if (el.Source is not null)
-                    set.Add(el.Source);
+                if (GetElement(x, y) is ArrangerElement el && el.Source is not null && sources.Contains(el.Source))
+                    ResetElement(x, y);
             }
-
-            return set;
         }
     }
 }

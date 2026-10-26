@@ -15,6 +15,9 @@ public sealed class FileDataSource : DataSource
 
     public bool IsMissing => !File.Exists(FileLocation);
 
+    /// <inheritdoc/>
+    public override FileDataSource? FindMissingDataSource() => IsMissing ? this : null;
+
     /// <summary>
     /// True when the file could only be opened for reading. Opens the file if needed; false while it is missing or its open failed.
     /// </summary>

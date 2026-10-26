@@ -46,7 +46,7 @@ depends:
 
 ## Purpose
 
-Exports an arranger's image to PNG and stages image files for import back into an arranger. Indexed arrangers export as paletted PNGs when their palettes fit, so palette indices survive a round trip through external editors; import matches colors to each element's palette (color matching itself is LIB-PALETTES/LIB-COLORS) and reports the outcome before anything is written. Writing goes through `SaveImage` (LIB-IMAGES).
+Exports an arranger's image to PNG and stages image files for import back into an arranger. Both take an arranger view (`IArrangerView`, LIB-ARRANGERS-053), so a tilemap exports and imports through its read-only view. Indexed arrangers export as paletted PNGs when their palettes fit, so palette indices survive a round trip through external editors; import matches colors to each element's palette (color matching itself is LIB-PALETTES/LIB-COLORS) and reports the outcome before anything is written. Writing goes through `SaveImage` (LIB-IMAGES).
 
 ## Requirements
 

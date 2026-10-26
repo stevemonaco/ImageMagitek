@@ -5,13 +5,13 @@ namespace ImageMagitek;
 public static class ElementCopier
 {
     /// <summary>
-    /// Tests if the source can be copied into the specified destination ScatteredArranger
+    /// Tests if the source can be copied into the specified destination
     /// </summary>
     /// <param name="source"></param>
     /// <param name="dest"></param>
     /// <param name="destStart">Upper-left point to begin copying into in element coordinates</param>
     /// <returns></returns>
-    public static MagitekResult CanCopyElements(ElementCopy source, ScatteredArranger dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
+    public static MagitekResult CanCopyElements(ElementCopy source, IArrangerView dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
     {
         if (copyWidth > dest.ArrangerElementSize.Width - destStart.X)
             return new MagitekResult.Failed($"Destination arranger '{dest.Name}' with width ({dest.ArrangerElementSize.Width}) is insufficient to copy {copyWidth} elements starting from position {destStart.X}");

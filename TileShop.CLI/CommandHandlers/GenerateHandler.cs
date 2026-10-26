@@ -14,9 +14,12 @@ namespace TileShop.CLI.Commands;
 /// </summary>
 public class GenerateHandler : ProjectCommandHandler<GenerateOptions>
 {
-    public GenerateHandler(IProjectService projectService, TextWriter output) :
+    private readonly IResourceGenerationService _generationService;
+
+    public GenerateHandler(IProjectService projectService, IResourceGenerationService generationService, TextWriter output) :
         base(projectService, output)
     {
+        _generationService = generationService;
     }
 
     public override async Task<ExitCode> Execute(GenerateOptions options)
@@ -37,7 +40,7 @@ public class GenerateHandler : ProjectCommandHandler<GenerateOptions>
             return ExitCode.GenerateOperationFailed;
         }
 
-        var planResult = ProjectService.PlanGeneration(projectTree, options.DataFileKey, definitionResult.AsSuccess.Result, options.FolderKey,
+        var planResult = _generationService.PlanGeneration(projectTree, options.DataFileKey, definitionResult.AsSuccess.Result, options.FolderKey,
             options.OverwriteEdited);
         if (planResult.HasFailed)
         {
@@ -59,7 +62,7 @@ public class GenerateHandler : ProjectCommandHandler<GenerateOptions>
             return ExitCode.Success;
         }
 
-        var generateResult = await ProjectService.GenerateResourcesAsync(projectTree, plan, options.SaveProject);
+        var generateResult = await _generationService.GenerateResourcesAsync(projectTree, plan, options.SaveProject);
         if (generateResult.HasFailed)
         {
             Output.WriteLine(generateResult.AsError.Reason);
@@ -85,7 +88,7 @@ public class GenerateHandler : ProjectCommandHandler<GenerateOptions>
             return ExitCode.GenerateOperationFailed;
         }
 
-        var generateResult = await ProjectService.GenerateResourcesAsync(projectTree, plan, options.SaveProject, options.Yes);
+        var generateResult = await _generationService.GenerateResourcesAsync(projectTree, plan, options.SaveProject, options.Yes);
         if (generateResult.HasFailed)
         {
             Output.WriteLine(generateResult.AsError.Reason);

@@ -5,6 +5,7 @@ using Avalonia.Controls.Templates;
 using Avalonia.Metadata;
 using ImageMagitek;
 using ImageMagitek.Colors;
+using ImageMagitek.Metatiles;
 using ImageMagitek.Project;
 using TileShop.Shared.Models;
 
@@ -46,7 +47,7 @@ internal class ResourceRemovalTemplateSelector : IDataTemplate
     {
         return changeVm.Resource switch
         {
-            Arranger => "arranger",
+            Arranger or TilemapArranger or MetatileSet or MetatileMap => "arranger",
             Palette => "palette",
             DataSource => "file",
             ResourceFolder => "folder",

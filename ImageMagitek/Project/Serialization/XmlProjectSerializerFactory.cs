@@ -13,6 +13,7 @@ namespace ImageMagitek.Project.Serialization;
 public sealed class XmlProjectSerializerFactory : IProjectSerializerFactory
 {
     public List<IProjectResource> GlobalResources { get; }
+    public ResourceKindRegistry Kinds { get; }
 
     private readonly string _resourceSchemaFileName;
     private readonly ICodecFactory _codecFactory;
@@ -22,8 +23,9 @@ public sealed class XmlProjectSerializerFactory : IProjectSerializerFactory
 
     public XmlProjectSerializerFactory(string resourceSchemaFileName,
         ICodecFactory codecFactory, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources,
-        ICompressorFactory? compressorFactory = null, IMapFormatFactory? mapFormatFactory = null)
+        ICompressorFactory? compressorFactory = null, IMapFormatFactory? mapFormatFactory = null, ResourceKindRegistry? kinds = null)
     {
+        Kinds = kinds ?? ResourceKindRegistry.BuiltIn;
         _resourceSchemaFileName = resourceSchemaFileName;
         _codecFactory = codecFactory;
         _colorFactory = colorFactory;
@@ -36,12 +38,12 @@ public sealed class XmlProjectSerializerFactory : IProjectSerializerFactory
     {
         var resourceSchemas = CreateSchemas(_resourceSchemaFileName);
 
-        return new XmlProjectReader(resourceSchemas, _codecFactory, _colorFactory, GlobalResources, _compressorFactory, _mapFormatFactory);
+        return new XmlProjectReader(resourceSchemas, _codecFactory, _colorFactory, GlobalResources, _compressorFactory, _mapFormatFactory, Kinds);
     }
 
     public IProjectWriter CreateWriter(ProjectTree tree)
     {
-        return new XmlProjectWriter(tree, _colorFactory, GlobalResources);
+        return new XmlProjectWriter(tree, _colorFactory, GlobalResources, Kinds);
     }
 
     public IMapFormatFactory MapFormatFactory => _mapFormatFactory;
@@ -55,23 +57,14 @@ public sealed class XmlProjectSerializerFactory : IProjectSerializerFactory
 
         foreach (var (model, parentNodePath, fileLocation) in models)
         {
-            reasons.AddRange(model switch
-            {
-                CompressedDataModel compressed => ReasonsOf(builder.AddCompressedData(compressed, parentNodePath, fileLocation)),
-                PaletteModel palette => ReasonsOf(builder.AddPalette(palette, parentNodePath, fileLocation)),
-                ScatteredArrangerModel arranger => ReasonsOf(builder.AddScatteredArranger(arranger, parentNodePath, fileLocation)),
-                MetatileSetModel set => ReasonsOf(builder.AddMetatileSet(set, parentNodePath, fileLocation)),
-                TilemapModel tilemap => ReasonsOf(builder.AddTilemap(tilemap, parentNodePath, fileLocation)),
-                MetatileMapModel map => ReasonsOf(builder.AddMetatileMap(map, parentNodePath, fileLocation)),
-                _ => [$"Cannot build a resource from a model of type '{model.GetType().Name}'"]
-            });
+            if (Kinds.FindByModel(model) is not { } kind)
+                reasons.Add($"Cannot build a resource from a model of type '{model.GetType().Name}'");
+            else if (kind.Build(builder, model, parentNodePath, fileLocation) is { HasFailed: true } failed)
+                reasons.AddRange(failed.AsError.Reasons);
         }
 
         return reasons.Count > 0 ? new MagitekResults.Failed(reasons) : MagitekResults.SuccessResults;
     }
-
-    private static IEnumerable<string> ReasonsOf(MagitekResult result) => result.HasFailed ? [result.AsError.Reason] : [];
-    private static IEnumerable<string> ReasonsOf(MagitekResults result) => result.HasFailed ? result.AsError.Reasons : [];
 
     private XmlSchemaSet CreateSchemas(string resourceSchemaFileName)
     {

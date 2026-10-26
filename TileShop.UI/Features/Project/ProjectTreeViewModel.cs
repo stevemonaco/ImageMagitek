@@ -29,6 +29,7 @@ namespace TileShop.UI.ViewModels;
 public partial class ProjectTreeViewModel : ObservableRecipient
 {
     private readonly IProjectService _projectService;
+    private readonly IResourceGenerationService _generationService;
     private readonly IColorFactory _colorFactory;
     private readonly PaletteStore _paletteStore;
     private readonly IAsyncFileRequestService _fileSelect;
@@ -43,8 +44,9 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     public ProjectTreeViewModel(IProjectService solutionService, IColorFactory colorFactory, PaletteStore paletteStore,
         IAsyncFileRequestService fileSelect, IInteractionService interactionService,
         UserPreferencesStore preferencesStore, IExploreService diskExploreService, EditorsViewModel editors,
-        ICompressorFactory compressorFactory, IMapFormatFactory mapFormatFactory, ICodecService codecService)
+        ICompressorFactory compressorFactory, IMapFormatFactory mapFormatFactory, ICodecService codecService, IResourceGenerationService generationService)
     {
+        _generationService = generationService;
         _compressorFactory = compressorFactory;
         _mapFormatFactory = mapFormatFactory;
         _codecService = codecService;
@@ -198,7 +200,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
 
         var tree = _projectService.GetContainingProject(node);
         var defaultFolder = (parent is ProjectNode ? "" : tree.CreatePathKey(parent)) + "/Generated";
-        var dialogModel = new GenerateResourcesViewModel(_projectService, tree, tree.CreatePathKey(node), defaultFolder, _fileSelect, _interactions, _editors);
+        var dialogModel = new GenerateResourcesViewModel(_generationService, tree, tree.CreatePathKey(node), defaultFolder, _fileSelect, _interactions, _editors);
 
         if (await _interactions.RequestAsync(dialogModel) is { } folderKey
             && tree.TryGetNode(folderKey, out var folder)
@@ -395,7 +397,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         if (await _editors.AlertIfUnavailableAsync(tilemap, "Bake Tilemap"))
             return;
 
-        var copy = tilemap.CloneArranger().CopyElements();
+        var copy = tilemap.Bake().CopyElements();
         copy.ProjectResource = tilemap;
         ReceiveAsync(new AddScatteredArrangerFromCopyMessage(copy, tilemap));
     }
@@ -420,14 +422,14 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         }
         else if (nodeModel.Node.Item is ScatteredArranger or TilemapArranger)
         {
-            await ExportArrangerAs((Arranger)nodeModel.Node.Item);
+            await ExportArrangerAs((IArrangerView)nodeModel.Node.Item);
         }
     }
 
     [RelayCommand]
-    public async Task ExportArrangerAs(Arranger arranger)
+    public async Task ExportArrangerAs(IArrangerView arranger)
     {
-        if (await _editors.AlertIfUnavailableAsync(arranger, "Export"))
+        if (await _editors.AlertIfUnavailableAsync((IProjectResource)arranger, "Export"))
             return;
 
         if (!await ResolveUnsavedChangesAsync(arranger, "exporting", discardOnNo: false))
@@ -463,15 +465,15 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     {
         if (nodeModel.Node.Item is ScatteredArranger or TilemapArranger)
         {
-            await ImportArrangerFrom((Arranger)nodeModel.Node.Item);
+            await ImportArrangerFrom((IArrangerView)nodeModel.Node.Item);
         }
     }
 
     [RelayCommand]
-    public Task ImportArrangerFrom(Arranger arranger) => ImportArrangerInto(arranger, null);
+    public Task ImportArrangerFrom(IArrangerView arranger) => ImportArrangerInto(arranger, null);
 
     /// <param name="bounds">Arranger pixels the import may change, or null for the whole arranger</param>
-    public async Task ImportArrangerInto(Arranger arranger, Rectangle? bounds)
+    public async Task ImportArrangerInto(IArrangerView arranger, Rectangle? bounds)
     {
         if (arranger.GetReadOnlyReason() is { } reason)
         {
@@ -479,7 +481,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
             return;
         }
 
-        if (await _editors.AlertIfUnavailableAsync(arranger, "Import"))
+        if (await _editors.AlertIfUnavailableAsync((IProjectResource)arranger, "Import"))
             return;
 
         if (!await ResolveUnsavedChangesAsync(arranger, "importing", discardOnNo: true))
@@ -495,35 +497,15 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     }
 
     /// <summary>
-    /// Has the user resolve an open editor's unsaved changes so the operation works against the saved data
+    /// Has the user resolve the arranger's editors' unsaved changes so the operation works against the saved data
     /// </summary>
-    /// <param name="verb">The operation, as in "Save them before {verb}?"</param>
-    /// <param name="discardOnNo">Whether No discards the editor's changes; otherwise No keeps them and proceeds</param>
-    /// <returns>False if the user cancelled or the save failed</returns>
-    private async Task<bool> ResolveUnsavedChangesAsync(Arranger arranger, string verb, bool discardOnNo)
+    /// <returns>False if the user cancelled or a save failed</returns>
+    private async Task<bool> ResolveUnsavedChangesAsync(IArrangerView arranger, string verb, bool discardOnNo)
     {
-        var editor = _editors.Editors.FirstOrDefault(x => ReferenceEquals(x.Resource, arranger));
-
-        if (editor is not { IsModified: true })
-            return true;
-
-        var result = await _interactions.PromptAsync(PromptChoices.YesNoCancel, "Save Changes",
-            $"'{editor.DisplayName}' has unsaved changes. Save them before {verb}?");
-
-        if (result == PromptResult.Accept)
-        {
-            await editor.SaveChangesAsync();
-            return !editor.IsModified;
-        }
-
-        if (result == PromptResult.Reject)
-        {
-            if (discardOnNo)
-                editor.DiscardChanges();
-            return true;
-        }
-
-        return false;
+        var resources = new HashSet<IProjectResource>(ReferenceEqualityComparer.Instance) { (IProjectResource)arranger };
+        var editors = _editors.Editors.Where(x => x.EditsAny(resources)).ToList();
+        var actions = await _editors.ResolveUnsavedChangesAsync(editors, UnsavedChangesPrompt.Before(verb, discardOnNo));
+        return !actions.Contains(UserSaveAction.Cancel);
     }
 
     [RelayCommand]
@@ -893,13 +875,10 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         {
             var removedEditors = _editors.Editors
                 .Where(x => projectTree.ContainsResource(x.Resource) || projectTree.ContainsResource(x.OriginatingProjectResource))
-                .ToHashSet();
+                .ToList();
 
-            foreach (var editor in removedEditors)
-            {
-                if (await _editors.RequestSaveUserChanges(editor, false) == UserSaveAction.Cancel)
-                    return false;
-            }
+            if ((await _editors.ResolveUnsavedChangesAsync(removedEditors, UnsavedChangesPrompt.Closing())).Contains(UserSaveAction.Cancel))
+                return false;
 
             _editors.RemoveEditors(removedEditors);
 

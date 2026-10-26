@@ -24,7 +24,7 @@ public partial class GridSettingsViewModel : ObservableObject
     {
     }
 
-    public static GridSettingsViewModel CreateDefault(Arranger arranger, GridPreferences preferences)
+    public static GridSettingsViewModel CreateDefault(IArrangerView arranger, GridPreferences preferences)
     {
         var settings = new GridSettingsViewModel()
         {
@@ -40,7 +40,7 @@ public partial class GridSettingsViewModel : ObservableObject
     /// <summary>
     /// Spacing that lines up with the arranger's elements, or an 8x8 grid for single-image arrangers
     /// </summary>
-    public static (int Width, int Height) DefaultSpacing(Arranger arranger) =>
+    public static (int Width, int Height) DefaultSpacing(IArrangerView arranger) =>
         arranger.Layout == ElementLayout.Single
             ? (_singleLayoutSpacing, _singleLayoutSpacing)
             : (arranger.ElementPixelSize.Width, arranger.ElementPixelSize.Height);
@@ -50,7 +50,7 @@ public partial class GridSettingsViewModel : ObservableObject
     public GridSettingsSnapshot Capture() =>
         new(WidthSpacing, HeightSpacing, OriginX, OriginY, LineColor, PrimaryColor, SecondaryColor);
 
-    public void Apply(GridSettingsSnapshot snapshot, Arranger arranger)
+    public void Apply(GridSettingsSnapshot snapshot, IArrangerView arranger)
     {
         WidthSpacing = snapshot.WidthSpacing;
         HeightSpacing = snapshot.HeightSpacing;
@@ -66,7 +66,7 @@ public partial class GridSettingsViewModel : ObservableObject
     /// <summary>
     /// Restores the default spacing for the arranger and moves the origin back to (0, 0)
     /// </summary>
-    public void ResetSpacing(Arranger arranger)
+    public void ResetSpacing(IArrangerView arranger)
     {
         (WidthSpacing, HeightSpacing) = DefaultSpacing(arranger);
         OriginX = 0;
@@ -78,7 +78,7 @@ public partial class GridSettingsViewModel : ObservableObject
     /// <summary>
     /// Regenerates the gridlines to cover the arranger's current pixel size
     /// </summary>
-    public void AdjustGridlines(Arranger arranger)
+    public void AdjustGridlines(IArrangerView arranger)
     {
         Gridlines = CreateGridlines(arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
     }

@@ -124,18 +124,6 @@ public sealed class MetatileMapTests : IDisposable
         }
     }
 
-    [Fact]
-    public void LayerArranger_SetElement_Throws()
-    {
-        var set = Set("Set", Source("table", new byte[16]), 1, Tiles("tiles", 1), 0, [_slot0]);
-        var layer = Map(Source("blocks", Blocks(0)), 1, 1, new MetatileMapSet(set, 0)).Layers[0];
-        var element = layer.GetElement(0, 0);
-
-        Assert.Throws<InvalidOperationException>(() => layer.SetElement(element, 0, 0));
-        Assert.Throws<InvalidOperationException>(() => layer.ResetElement(0, 0));
-        Assert.Throws<InvalidOperationException>(() => layer.Resize(2, 2));
-    }
-
     private (MetatileSet A, MetatileSet B) DisjointSets(int countA = 3, int countB = 3)
     {
         var a = Set("A", Source("tableA", new byte[64]), countA, Tiles("tilesA", 4), 0, [_slot0]);

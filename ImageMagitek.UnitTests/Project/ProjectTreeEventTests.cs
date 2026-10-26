@@ -113,6 +113,87 @@ public sealed class ProjectTreeEventTests
     }
 
     [Fact]
+    public void ReplaceNodes_DetachAndAttachAtKey_RaisesOneReplaced()
+    {
+        var folder = CreateFolder("Folder");
+        var old = CreateDataFile("data");
+        _tree.Root.AttachChildNode(folder);
+        folder.AttachChildNode(old);
+        var replacement = CreateDataFile("data");
+        _changes.Clear();
+
+        _tree.ReplaceNodes([(old, "/Folder/data")], () =>
+        {
+            folder.DetachChildNode("data");
+            Assert.Empty(_changes);
+            folder.AttachChildNode(replacement);
+        });
+
+        var change = Assert.Single(_changes);
+        Assert.Equal(ProjectTreeChangeKind.Replaced, change.Kind);
+        Assert.Same(replacement, change.Node);
+        Assert.Same(old, change.OldNode);
+        Assert.Same(folder, change.Parent);
+        Assert.Same(folder, change.OldParent);
+        Assert.True(_tree.ContainsResource(replacement.Item));
+        Assert.False(_tree.ContainsResource(old.Item));
+    }
+
+    [Fact]
+    public void ReplaceNodes_OldReattached_RaisesNothing()
+    {
+        var old = CreateDataFile("data");
+        _tree.Root.AttachChildNode(old);
+        _changes.Clear();
+
+        var result = _tree.ReplaceNodes([(old, "/data")], () =>
+        {
+            _tree.Root.DetachChildNode("data");
+            var partial = CreateDataFile("data");
+            _tree.Root.AttachChildNode(partial);
+            _tree.Root.RemoveChildNode("data");
+            _tree.Root.AttachChildNode(old);
+            return 1;
+        });
+
+        Assert.Equal(1, result);
+        Assert.Empty(_changes);
+        Assert.True(_tree.TryFindResourceNode(old.Item, out var found));
+        Assert.Same(old, found);
+    }
+
+    [Fact]
+    public void ReplaceNodes_OtherChanges_PassThroughInOrder()
+    {
+        ResourceNode old = CreateDataFile("data");
+        ResourceNode removed = CreateDataFile("removed");
+        _tree.Root.AttachChildNode(old);
+        _tree.Root.AttachChildNode(removed);
+        ResourceNode replacement = CreateDataFile("moved");
+        ResourceNode added = CreateFolder("Added");
+        _changes.Clear();
+
+        _tree.ReplaceNodes([(old, "/moved")], () =>
+        {
+            _tree.Root.AttachChildNode(added);
+            _tree.Root.DetachChildNode("data");
+            _tree.Root.RemoveChildNode("removed");
+            _tree.Root.AttachChildNode(replacement);
+        });
+
+        Assert.Collection(_changes,
+            x => Assert.Equal((ProjectTreeChangeKind.Added, added), (x.Kind, x.Node)),
+            x => Assert.Equal((ProjectTreeChangeKind.Removed, removed), (x.Kind, x.Node)),
+            x => Assert.Equal((ProjectTreeChangeKind.Replaced, replacement, old), (x.Kind, x.Node, x.OldNode!)));
+    }
+
+    [Fact]
+    public void ReplaceNodes_Nested_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => _tree.ReplaceNodes([], () => _tree.ReplaceNodes([], () => { })));
+    }
+
+    [Fact]
     public void Index_FindsResourcesAfterAddRenameAndMove()
     {
         var folder = CreateFolder("Folder");

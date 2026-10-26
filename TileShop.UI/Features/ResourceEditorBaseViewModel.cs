@@ -40,6 +40,22 @@ public abstract partial class ResourceEditorBaseViewModel : ToolViewModel
         OriginatingProjectResource = resource;
     }
 
+    /// <summary>
+    /// Whether this editor edits one of <paramref name="resources"/>, as its resource or the tree resource it was opened from
+    /// </summary>
+    public bool EditsAny(IReadOnlySet<IProjectResource> resources) =>
+        resources.Contains(Resource) || resources.Contains(OriginatingProjectResource);
+
+    /// <summary>
+    /// Whether this editor reads any of <paramref name="resources"/>, so it goes stale when they are replaced or removed
+    /// </summary>
+    public virtual bool DependsOn(IReadOnlySet<IProjectResource> resources) => EditsAny(resources);
+
+    /// <summary>
+    /// Undoes state this editor set on shared resources, before it is closed or replaced
+    /// </summary>
+    public virtual void OnClosing() { }
+
     public virtual bool CanUndo { get => UndoHistory.Count > 0; }
     public virtual bool CanRedo { get => RedoHistory.Count > 0; }
 

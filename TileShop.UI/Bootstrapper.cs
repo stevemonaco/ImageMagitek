@@ -95,8 +95,9 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         var defaultResources = paletteStore.GlobalPalettes;
         var serializerFactory = bootstrapper.CreateProjectSerializerFactory(paths.ResourceSchemaFileName,
             codecService.CodecFactory, colorFactory, defaultResources, compressorFactory, mapFormatFactory);
-        var projectService = bootstrapper.CreateProjectService(serializerFactory, colorFactory);
+        var (projectService, generationService) = bootstrapper.CreateProjectServices(serializerFactory, colorFactory);
         services.AddSingleton(projectService);
+        services.AddSingleton(generationService);
     }
 
     public void ConfigureServices(IServiceCollection services)

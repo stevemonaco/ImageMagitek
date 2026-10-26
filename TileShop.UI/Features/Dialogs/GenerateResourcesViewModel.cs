@@ -6,12 +6,9 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ImageMagitek;
-using ImageMagitek.Colors;
-using ImageMagitek.Metatiles;
 using ImageMagitek.Project;
 using ImageMagitek.Services;
 using ImageMagitek.Tables;
-using Monaco.PathTree;
 using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.ViewModels;
@@ -30,7 +27,7 @@ public partial class GenerateResourcesViewModel : RequestViewModel<string>
 {
     public const string AllTypes = "All";
 
-    private readonly IProjectService _projectService;
+    private readonly IResourceGenerationService _generationService;
     private readonly ProjectTree _tree;
     private readonly IAsyncFileRequestService _fileSelect;
     private readonly IInteractionService _interactions;
@@ -66,11 +63,11 @@ public partial class GenerateResourcesViewModel : RequestViewModel<string>
     public bool HasPreview => Plan is not null;
     public override DialogSize Size => DialogSize.Large;
 
-    /// <param name="editors">Reopens the editors a regeneration replaces; null leaves them closed</param>
-    public GenerateResourcesViewModel(IProjectService projectService, ProjectTree tree, string dataFileKey, string defaultFolderKey,
+    /// <param name="editors">Prompts for and reopens the editors a regeneration affects; null skips both</param>
+    public GenerateResourcesViewModel(IResourceGenerationService generationService, ProjectTree tree, string dataFileKey, string defaultFolderKey,
         IAsyncFileRequestService fileSelect, IInteractionService interactions, EditorsViewModel? editors)
     {
-        _projectService = projectService;
+        _generationService = generationService;
         _tree = tree;
         DataFileKey = dataFileKey;
         _targetFolder = defaultFolderKey;
@@ -156,12 +153,12 @@ public partial class GenerateResourcesViewModel : RequestViewModel<string>
         if (definitionResult.HasFailed)
             return new PreviewResult(null, [], string.Join("\n", XmlTableDefinitionReader.DescribeErrors(definitionPath, definitionResult.AsError.Reasons)));
 
-        var planResult = _projectService.PlanGeneration(_tree, DataFileKey, definitionResult.AsSuccess.Result, targetFolder, OverwriteEdited);
+        var planResult = _generationService.PlanGeneration(_tree, DataFileKey, definitionResult.AsSuccess.Result, targetFolder, OverwriteEdited);
         if (planResult.HasFailed)
             return new PreviewResult(null, [], planResult.AsError.Reason);
 
         var plan = planResult.AsSuccess.Result;
-        return new PreviewResult(plan, _projectService.FindGenerationConflicts(_tree, plan), null);
+        return new PreviewResult(plan, _generationService.FindGenerationConflicts(_tree, plan), null);
     }
 
     private void ApplyPreview(PreviewResult result)
@@ -236,141 +233,43 @@ public partial class GenerateResourcesViewModel : RequestViewModel<string>
 
         if (_editors is not null && plan.Regeneration is { } regeneration)
         {
-            var saved = false;
-            var cancelled = false;
-            foreach (var editor in EditorsUsing(PredictReplaced(regeneration)))
-            {
-                var action = await _editors.RequestSaveUserChanges(editor, false, "will be closed by regeneration");
-                if (action == UserSaveAction.Cancel)
-                {
-                    cancelled = true;
-                    break;
-                }
-
-                saved |= action == UserSaveAction.Save;
-            }
+            var actions = await _editors.ResolveUnsavedChangesAsync(_editors.FindAffected(regeneration.Affected),
+                UnsavedChangesPrompt.Closing("will be closed by regeneration"));
+            var saved = actions.Contains(UserSaveAction.Save);
 
             // A saved generated resource now counts as edited, which the previewed plan would overwrite
             if (saved)
                 await Preview();
 
-            if (saved || cancelled)
+            if (saved || actions.Contains(UserSaveAction.Cancel))
                 return false;
         }
 
         GenerationErrorText = null;
         IsGenerating = true;
 
+        // Editors that Replaced swaps in during the run can still read resources the commit rebuilds afterwards, so they reopen too
+        var affected = plan.Regeneration is { } planned && _editors is not null ? _editors.FindAffected(planned.Affected) : [];
+        var openBefore = _editors?.Editors.ToHashSet() ?? [];
+
         try
         {
-            var openEditors = FindOpenEditors(plan.Regeneration);
-            var activeEditor = _editors?.ActiveEditor;
-            var itemsBefore = _tree.EnumerateDepthFirst().Select(x => (object)x.Item).ToHashSet(ReferenceEqualityComparer.Instance);
-            var result = await _projectService.GenerateResourcesAsync(_tree, plan, SaveProject, plan.Regeneration is not null);
+            var result = await _generationService.GenerateResourcesAsync(_tree, plan, SaveProject, plan.Regeneration is not null);
+            if (_editors is not null && plan.Regeneration is not null)
+                _editors.ReopenEditors([.. affected, .. _editors.Editors.Where(x => !openBefore.Contains(x))]);
+
             if (result.HasFailed)
             {
                 GenerationErrorText = result.AsError.Reason;
                 return false;
             }
 
-            CloseEditorsOfReplacedResources(itemsBefore);
-            await ReopenEditorsAsync(openEditors, activeEditor);
             return true;
         }
         finally
         {
             IsGenerating = false;
         }
-    }
-
-    // The key each editor's resource will have after regeneration, so editors closed by a replaced node can be reopened
-    private List<(ResourceEditorBaseViewModel Editor, string Key)> FindOpenEditors(RegenerationPlan? regeneration)
-    {
-        if (_editors is null || regeneration is null)
-            return [];
-
-        var keys = _tree.EnumerateDepthFirst().ToDictionary(x => (object)x.Item, x => _tree.CreatePathKey(x), ReferenceEqualityComparer.Instance);
-        var moves = regeneration.Written
-            .Where(x => x.Entry?.CurrentKey is not null)
-            .ToDictionary(x => x.Entry!.CurrentKey!, x => x.TargetKey, StringComparer.Ordinal);
-
-        return _editors.Editors
-            .Select(x => (Editor: x, Item: keys.ContainsKey(x.Resource) ? x.Resource : x.OriginatingProjectResource))
-            .Where(x => keys.ContainsKey(x.Item))
-            .Select(x => (x.Editor, moves.GetValueOrDefault(keys[x.Item], keys[x.Item])))
-            .ToList();
-    }
-
-    // Arrangers retargeted in place stay in the tree, but their editors' working copies still read the replaced resources
-    private void CloseEditorsOfReplacedResources(HashSet<object> itemsBefore)
-    {
-        if (_editors is null)
-            return;
-
-        var gone = new HashSet<object>(itemsBefore, ReferenceEqualityComparer.Instance);
-        gone.ExceptWith(_tree.EnumerateDepthFirst().Select(x => (object)x.Item));
-        _editors.RemoveEditors(EditorsUsing(gone));
-    }
-
-    // Retargeting sets the palette of codecs the working copies share, so only the editor's palette list still holds a replaced palette
-    private List<ResourceEditorBaseViewModel> EditorsUsing(HashSet<object> gone) =>
-        _editors!.Editors
-            .Where(x => gone.Contains(x.Resource) || x.OriginatingProjectResource is { } origin && gone.Contains(origin)
-                || x is GraphicsEditorViewModel graphics
-                    && (EditorsViewModel.ReferencesAny(graphics.WorkingArranger, gone) || graphics.Palettes.Any(palette => gone.Contains(palette.Palette))))
-            .ToList();
-
-    // The resources regeneration replaces or removes, and the dependents it rebuilds as LIB-PROJECT-SERVICE-079 retargets them
-    private HashSet<object> PredictReplaced(RegenerationPlan regeneration)
-    {
-        var gone = regeneration.Resources.Where(x => x.Kind == RegenerationKind.Changed).Select(x => x.Entry!.CurrentKey)
-            .Concat(regeneration.Removed.Select(x => x.CurrentKey))
-            .Select(x => x is not null && _tree.TryGetNode(x, out var node) ? node.Item : null)
-            .OfType<object>()
-            .ToHashSet(ReferenceEqualityComparer.Instance);
-
-        var rebuildable = _tree.EnumerateDepthFirst()
-            .Select(x => x.Item)
-            .Where(x => ProjectService.RebuildOrder(x) is not null)
-            .ToList();
-
-        for (var added = true; added;)
-        {
-            added = false;
-            foreach (var item in rebuildable.Where(x => !gone.Contains(x)))
-            {
-                if (item.LinkedResources.Any(gone.Contains))
-                    added |= gone.Add(item);
-            }
-        }
-
-        return gone;
-    }
-
-    private async Task ReopenEditorsAsync(List<(ResourceEditorBaseViewModel Editor, string Key)> openEditors, ResourceEditorBaseViewModel? active)
-    {
-        if (_editors is null || openEditors.Count == 0)
-            return;
-
-        ResourceEditorBaseViewModel? activeReplacement = null;
-
-        foreach (var (editor, key) in openEditors)
-        {
-            if (_editors.Editors.Contains(editor) || !_tree.TryGetNode(key, out var node))
-                continue;
-
-            await _editors.ActivateEditor(node.Item);
-
-            // Kept by editor, since activating a data source again opens a second sequential editor
-            if (ReferenceEquals(editor, active) && _editors.ActiveEditor is { } reopened
-                && (ReferenceEquals(reopened.Resource, node.Item) || ReferenceEquals(reopened.OriginatingProjectResource, node.Item)))
-                activeReplacement = reopened;
-        }
-
-        if (activeReplacement is not null)
-            _editors.ActiveEditor = activeReplacement;
-        else if (active is not null && _editors.Editors.Contains(active))
-            _editors.ActiveEditor = active;
     }
 
     private sealed record PreviewResult(GenerationPlan? Plan, IReadOnlyList<string> Conflicts, string? Error);

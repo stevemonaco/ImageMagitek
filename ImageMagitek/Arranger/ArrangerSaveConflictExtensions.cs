@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -236,7 +236,7 @@ public static class SharedTileExtensions
     /// <param name="changedCellsWin">When true, only cells that differ from <paramref name="current"/> must agree, and their tile replaces the others.
     /// When false, every cell of the tile must agree.</param>
     /// <returns>The tiles left unchanged because their cells disagree</returns>
-    public static IReadOnlyList<SharedTileConflict> ResolveSharedTiles(this Arranger arranger, IndexedImage current, IndexedImage result, bool changedCellsWin)
+    public static IReadOnlyList<SharedTileConflict> ResolveSharedTiles(this IArrangerView arranger, IndexedImage current, IndexedImage result, bool changedCellsWin)
     {
         var groups = arranger.EnumerateElementsWithinElementRange()
             .Select(p => (Cell: new Point(p.x, p.y), Element: arranger.GetElement(p.x, p.y)))

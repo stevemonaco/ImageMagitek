@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -228,7 +229,6 @@ public sealed class TilemapProjectTests : IAsyncLifetime
     [Theory]
     [InlineData("/Map")]
     [InlineData("/Tiles")]
-    [InlineData("/Pal")]
     public async Task DeletingReferencedResource_RemovesTilemap(string deletedKey)
     {
         await AddTilemapAsync();
@@ -242,6 +242,36 @@ public sealed class TilemapProjectTests : IAsyncLifetime
         Assert.True((await _service.ApplyResourceDeletionAsync(plan, _globalPalette)).HasSucceeded);
         Assert.False(_tree.TryGetNode("/Screen", out _));
         Assert.False(File.Exists(TilemapFile));
+    }
+
+    [Fact]
+    public async Task DeletingSlotPalette_KeepsTilemap_AndClearsSlot()
+    {
+        var tilemap = await AddTilemapAsync();
+        Assert.True(_tree.TryGetNode("/Pal", out var palNode));
+
+        var plan = _service.PreviewResourceDeletion(palNode).AsSuccess.Result;
+
+        var change = Assert.Single(plan.Changes, x => x.Resource is TilemapArranger);
+        Assert.False(change.Removed);
+        Assert.True(change.LostSlotPalette);
+        Assert.True(change.IsChanged);
+        var changes = new List<ProjectTreeChange>();
+        _tree.Changed += (_, x) => changes.Add(x);
+
+        Assert.True((await _service.ApplyResourceDeletionAsync(plan, _globalPalette)).HasSucceeded);
+        Assert.DoesNotContain("paletteslot index=\"1\"", File.ReadAllText(TilemapFile));
+        Assert.True(_tree.TryGetItem<TilemapArranger>("/Screen", out var rebuilt));
+        Assert.NotSame(tilemap, rebuilt);
+        var replaced = Assert.Single(changes, x => x.Kind == ProjectTreeChangeKind.Replaced);
+        Assert.Same(tilemap, replaced.OldNode!.Item);
+        Assert.Same(rebuilt, replaced.Node.Item);
+        Assert.DoesNotContain(changes, x => x.Kind == ProjectTreeChangeKind.Added);
+        Assert.Null(rebuilt.PaletteSlots[1]);
+
+        var reopened = await ReopenAsync();
+        Assert.True(reopened.TryGetItem<TilemapArranger>("/Screen", out var loaded));
+        Assert.Null(loaded.PaletteSlots[1]);
     }
 
     private async Task<(TilemapArranger Tilemap, ScatteredArranger Picker)> AddTilemapWithTilePaletteAsync()

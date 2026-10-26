@@ -9,10 +9,10 @@ namespace TileShop.CLI;
 public static class CliBootstrap
 {
     /// <summary>
-    /// Builds the project service from the shipped resources and plugins, printing each startup issue to <paramref name="output"/>.
+    /// Builds the project and generation services from the shipped resources and plugins, printing each startup issue to <paramref name="output"/>.
     /// </summary>
     /// <exception cref="BootstrapException">An essential resource could not be loaded</exception>
-    public static IProjectService CreateProjectService(BootstrapPaths paths, ILoggerFactory loggerFactory, TextWriter output)
+    public static (IProjectService Projects, IResourceGenerationService Generation) CreateProjectServices(BootstrapPaths paths, ILoggerFactory loggerFactory, TextWriter output)
     {
         var bootstrapper = new BootstrapService(loggerFactory.CreateLogger<BootstrapService>());
 
@@ -36,7 +36,7 @@ public static class CliBootstrap
 
             var serializerFactory = bootstrapper.CreateProjectSerializerFactory(paths.ResourceSchemaFileName,
                 codecService.CodecFactory, colorFactory, paletteStore.GlobalPalettes, compressorFactory, mapFormatFactory);
-            return bootstrapper.CreateProjectService(serializerFactory, colorFactory);
+            return bootstrapper.CreateProjectServices(serializerFactory, colorFactory);
         }
         finally
         {

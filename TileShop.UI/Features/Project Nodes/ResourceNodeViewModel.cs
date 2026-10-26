@@ -45,6 +45,18 @@ public abstract partial class ResourceNodeViewModel : ObservableObject
         return vm;
     }
 
+    /// <summary>
+    /// Shows <paramref name="node"/> in place of this view model's node, keeping its expansion and selection
+    /// </summary>
+    internal void Retarget(ResourceNode node)
+    {
+        Node = node;
+        Name = node.Name;
+        Children.Clear();
+        AddChildren();
+        RefreshDescription();
+    }
+
     protected void AddChildren()
     {
         foreach (var child in Node.ChildNodes.Select(x => Create(x, this)).Order(ResourceNodeComparer.Instance))

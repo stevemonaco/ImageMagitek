@@ -191,7 +191,7 @@ internal sealed class ProjectTreeBuilder
         };
 
         var attachResult = AttachNode(node, parentNodePath);
-        return attachResult.HasSucceeded ? MagitekResults.SuccessResults : new MagitekResults.Failed([attachResult.AsError.Reason]);
+        return MagitekResults.From(attachResult);
     }
 
     /// <summary>
@@ -251,7 +251,7 @@ internal sealed class ProjectTreeBuilder
         };
 
         var attachResult = AttachNode(node, parentNodePath);
-        return attachResult.HasSucceeded ? MagitekResults.SuccessResults : new MagitekResults.Failed([attachResult.AsError.Reason]);
+        return MagitekResults.From(attachResult);
     }
 
     /// <summary>
@@ -301,7 +301,7 @@ internal sealed class ProjectTreeBuilder
         };
 
         var attachResult = AttachNode(node, parentNodePath);
-        return attachResult.HasSucceeded ? MagitekResults.SuccessResults : new MagitekResults.Failed([attachResult.AsError.Reason]);
+        return MagitekResults.From(attachResult);
     }
 
     /// <summary>
@@ -334,10 +334,10 @@ internal sealed class ProjectTreeBuilder
         };
 
         var attachResult = AttachNode(arrangerNode, parentNodePath);
-        return attachResult.HasSucceeded ? MagitekResults.SuccessResults : new MagitekResults.Failed([attachResult.AsError.Reason]);
+        return MagitekResults.From(attachResult);
     }
 
-    private MagitekResult AttachNode(ResourceNode node, string parentNodePath)
+    public MagitekResult AttachNode(ResourceNode node, string parentNodePath)
     {
         if (Tree?.TryGetNode(parentNodePath, out var parentNode) is true)
         {

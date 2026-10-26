@@ -38,7 +38,7 @@ public sealed class LayerImage
     /// direct pixels keep their decoded color, and empty cells, elements outside their source and indexes past the palette are transparent.
     /// </summary>
     /// <param name="forceZeroTransparent">Makes index 0 fully transparent whatever the palette's zero-index-transparent flag says</param>
-    public static LayerImage FromArranger(Arranger arranger, bool forceZeroTransparent = false)
+    public static LayerImage FromArranger(IArrangerView arranger, bool forceZeroTransparent = false)
     {
         var width = arranger.ArrangerPixelSize.Width;
         var height = arranger.ArrangerPixelSize.Height;

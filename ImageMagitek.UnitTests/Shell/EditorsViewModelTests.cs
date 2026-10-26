@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
@@ -169,6 +171,98 @@ public sealed class EditorsViewModelTests : IAsyncLifetime
 
         Assert.Equal("renamed", editor.DisplayName);
     }
+
+    [Fact]
+    public async Task Replaced_ReopensEditorInTabPositionAndKeepsActive()
+    {
+        var a = await AddEditorAsync("A");
+        var paletteNode = new PaletteNode("Pal", ArrangerTestFactory.CreatePalette(new ColorRgba32(1, 2, 3, 255)));
+        _tree.Root.AttachChildNode(paletteNode);
+        await _editors.ActivateEditor(paletteNode.Item);
+        var stale = _editors.ActiveEditor!;
+        var c = await AddEditorAsync("C");
+        var replacement = new PaletteNode("Pal", ArrangerTestFactory.CreatePalette(new ColorRgba32(4, 5, 6, 255)));
+
+        _tree.ReplaceNodes([(paletteNode, "/Pal")], () =>
+        {
+            _tree.Root.DetachChildNode("Pal");
+            _tree.Root.AttachChildNode(replacement);
+        });
+
+        Assert.Equal(3, _editors.Editors.Count);
+        Assert.Same(a, _editors.Editors[0]);
+        Assert.Same(c, _editors.Editors[2]);
+        var editor = Assert.IsType<PaletteEditorViewModel>(_editors.Editors[1]);
+        Assert.NotSame(stale, editor);
+        Assert.Same(replacement.Item, editor.Resource);
+        Assert.Same(editor, _editors.ActiveEditor);
+    }
+
+    [Fact]
+    public async Task DependsOn_GraphicsEditor_PaletteOnlyInPaletteList()
+    {
+        var data = await AddDataFileAsync("rom");
+        var codec = (IIndexedCodec)CodecFixture.Shared.CodecFactory.CreateCodec("GBA 4bpp")!;
+        codec.Palette = _palette;
+        var arranger = new ScatteredArranger("User", PixelColorType.Indexed, ElementLayout.Tiled, 1, 1, codec.Width, codec.Height);
+        arranger.SetElement(new ArrangerElement(0, 0, (DataSource)data.Item, BitAddress.Zero, codec), 0, 0);
+        Assert.True((await _projectService.AddResourceAsync(_tree.Root, arranger)).HasSucceeded);
+        await _editors.ActivateEditor(arranger);
+        var editor = Assert.IsType<GraphicsEditorViewModel>(_editors.ActiveEditor);
+        var listed = ArrangerTestFactory.CreatePalette(new ColorRgba32(1, 2, 3, 255));
+        Assert.False(editor.DependsOn(Resources(listed)));
+
+        editor.SelectPalette(listed);
+
+        Assert.True(editor.DependsOn(Resources(listed)));
+        Assert.True(editor.DependsOn(Resources(data.Item)));
+        Assert.False(editor.EditsAny(Resources(listed)));
+        Assert.Same(editor, Assert.Single(_editors.FindAffected(Resources(listed))));
+    }
+
+    [Fact]
+    public async Task ResolveUnsavedChanges_CancelAtSecondOfThree_StopsAndKeepsAllOpen()
+    {
+        var a = await AddEditorAsync("A", isModified: true);
+        var b = await AddEditorAsync("B", isModified: true);
+        var c = await AddEditorAsync("C", isModified: true);
+        _interactions.Answers.Enqueue(PromptResult.Accept);
+        _interactions.Answers.Enqueue(PromptResult.Cancel);
+
+        var actions = await _editors.ResolveUnsavedChangesAsync([a, b, c], UnsavedChangesPrompt.Closing());
+
+        Assert.Equal([UserSaveAction.Save, UserSaveAction.Cancel], actions);
+        Assert.Equal(["'A' has been modified and will be closed. Save changes?", "'B' has been modified and will be closed. Save changes?"], _interactions.Messages);
+        Assert.Equal((1, 0, 0), (a.SaveCount, b.SaveCount, c.SaveCount));
+        Assert.True(b.IsModified && c.IsModified);
+        Assert.Equal([a, b, c], _editors.Editors);
+    }
+
+    [Fact]
+    public async Task ResolveUnsavedChanges_DiscardOnly_DiscardsAfterAllAccepted()
+    {
+        var a = await AddEditorAsync("A", isModified: true);
+        var b = await AddEditorAsync("B", isModified: true);
+        _interactions.Answers.Enqueue(PromptResult.Accept);
+        _interactions.Answers.Enqueue(PromptResult.Cancel);
+
+        var cancelled = await _editors.ResolveUnsavedChangesAsync([a, b], UnsavedChangesPrompt.DiscardForDeletion);
+
+        Assert.Equal([UserSaveAction.Discard, UserSaveAction.Cancel], cancelled);
+        Assert.True(a.IsModified && b.IsModified);
+        Assert.Equal("'A' has unsaved changes that use resources being deleted. These changes will be discarded.", _interactions.Messages[0]);
+
+        _interactions.Answers.Enqueue(PromptResult.Accept);
+        _interactions.Answers.Enqueue(PromptResult.Accept);
+
+        var accepted = await _editors.ResolveUnsavedChangesAsync([a, b], UnsavedChangesPrompt.DiscardForDeletion);
+
+        Assert.Equal([UserSaveAction.Discard, UserSaveAction.Discard], accepted);
+        Assert.False(a.IsModified || b.IsModified);
+        Assert.Equal((0, 0), (a.SaveCount, b.SaveCount));
+    }
+
+    private static HashSet<IProjectResource> Resources(params IProjectResource[] resources) => resources.ToHashSet<IProjectResource>(ReferenceEqualityComparer.Instance);
 
     private async Task<TestEditor> AddEditorAsync(string name, bool isModified = false)
     {

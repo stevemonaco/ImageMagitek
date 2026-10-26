@@ -34,6 +34,9 @@ public sealed class MagitekResults : OneOfBase<MagitekResults.Success, MagitekRe
 
     public static implicit operator MagitekResults(Success input) => new(input);
     public static implicit operator MagitekResults(Failed input) => new(input);
+
+    public static MagitekResults From(MagitekResult result) =>
+        result.HasSucceeded ? SuccessResults : new Failed([result.AsError.Reason]);
 }
 
 public sealed class MagitekResults<T> : OneOfBase<MagitekResults<T>.Success, MagitekResults<T>.Failed>

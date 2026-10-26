@@ -4,6 +4,7 @@ using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Compression;
+using ImageMagitek.Project;
 using ImageMagitek.Tilemaps;
 using ImageMagitek.UnitTests.Fixtures;
 using ImageMagitek.UnitTests.TestFactories;
@@ -198,7 +199,7 @@ public sealed class TilemapArrangerTests : IDisposable
 
         Assert.Null(tilemap.GetReadOnlyReason());
         Assert.Equal("reads compressed data 'packed', which is read-only", tilemap.MapReadOnlyReason);
-        Assert.True(tilemap.WriteEntries(tilemap.CloneArranger()).HasFailed);
+        Assert.True(tilemap.WriteEntries(tilemap.CreateGrid()).HasFailed);
     }
 
     [Fact]
@@ -238,27 +239,76 @@ public sealed class TilemapArrangerTests : IDisposable
     }
 
     [Fact]
-    public void CloneArranger_ReturnsEquivalentScatteredArrangerWithOwnCodecs()
+    public void Bake_ReturnsEquivalentScatteredArrangerWithOwnCodecs()
     {
         _map.Write([.. Entry16(1, palette: 1, hflip: true), .. Entry16(4)]);
         using var tilemap = Create(_map, _gba, MapScreenLayout.Linear, 2, 1, 0, _slot0, _slot1);
 
-        var clone = Assert.IsType<ScatteredArranger>(tilemap.CloneArranger());
+        var clone = tilemap.Bake();
 
         AssertSameElements(clone, tilemap);
         Assert.NotSame(tilemap.GetElement(0, 0)!.Value.Codec, clone.GetElement(0, 0)!.Value.Codec);
     }
 
     [Fact]
-    public void ResizeSetAndResetElement_Throw()
+    public void CreateGrid_ReadsEntries_NullPastMapData()
     {
-        _map.Write(Entry16(0));
-        using var tilemap = Create(_map, _gba, MapScreenLayout.Linear, 1, 1);
-        var element = tilemap.GetElement(0, 0);
+        _map.Write([.. Entry16(1, palette: 1, hflip: true), .. Entry16(2 + TileCount), .. Entry16(3)]);
+        using var tilemap = Create(_map, _gba, MapScreenLayout.Linear, 2, 2, 0, _slot0, _slot1);
 
-        Assert.Throws<InvalidOperationException>(() => tilemap.Resize(2, 2));
-        Assert.Throws<InvalidOperationException>(() => tilemap.SetElement(element, 0, 0));
-        Assert.Throws<InvalidOperationException>(() => tilemap.ResetElement(0, 0));
+        var grid = tilemap.CreateGrid();
+
+        Assert.Equal((2, 2), (grid.Width, grid.Height));
+        Assert.Equal(new MapEntry(1, 1, true, false, false), grid[0, 0]);
+        Assert.Equal(new MapEntry(2 + TileCount, 0, false, false, false), grid[1, 0]);
+        Assert.Equal(new MapEntry(3, 0, false, false, false), grid[0, 1]);
+        Assert.Null(grid[1, 1]);
+    }
+
+    [Fact]
+    public void CreateGrid_IsACopy()
+    {
+        _map.Write([.. Entry16(1), .. Entry16(2)]);
+        using var tilemap = Create(_map, _gba, MapScreenLayout.Linear, 2, 1);
+        var grid = tilemap.CreateGrid();
+
+        grid.TrySet(0, 0, null);
+
+        Assert.NotNull(tilemap.CreateGrid()[0, 0]);
+        Assert.NotNull(tilemap.GetElement(0, 0));
+    }
+
+    [Fact]
+    public void WorkingView_UneditedGrid_RendersSameAsTilemap()
+    {
+        const int width = 64, height = 32;
+        var map = new byte[width * height * 2];
+        for (int i = 0; i < width * height; i++)
+            Entry16((i * 7) % (TileCount + 3), i % 3, i % 2 == 1, i % 5 == 0, paletteShift: 10, hBit: 14, vBit: 15).CopyTo(map, i * 2);
+
+        _map.Write(map);
+        using var tilemap = Create(_map, _snes, MapScreenLayout.Snes32, width, height, 0, _slot0, _slot1);
+
+        var view = tilemap.CreateWorkingView();
+
+        AssertSameElements(tilemap, view);
+        Assert.Equal(new IndexedImage(tilemap).Image, new IndexedImage(view).Image);
+        Assert.NotSame(tilemap.GetElement(0, 0)!.Value.Codec, view.GetElement(0, 0)!.Value.Codec);
+    }
+
+    [Fact]
+    public void WorkingView_RebuildsAfterGridEdit()
+    {
+        _map.Write([.. Entry16(1), .. Entry16(2)]);
+        using var tilemap = Create(_map, _gba, MapScreenLayout.Linear, 2, 1);
+        var view = tilemap.CreateWorkingView();
+        Assert.NotNull(view.GetElement(0, 0));
+
+        view.Grid.TrySet(0, 0, new MapEntry(5, 0, true, false, false));
+
+        Assert.Equal(5 * TileBytes, view.GetElement(0, 0)!.Value.SourceAddress.ByteOffset);
+        Assert.Equal(MirrorOperation.Horizontal, view.GetElement(0, 0)!.Value.Mirror);
+        Assert.Equal(1 * TileBytes, tilemap.GetElement(0, 0)!.Value.SourceAddress.ByteOffset);
     }
 
     [Fact]
@@ -277,15 +327,22 @@ public sealed class TilemapArrangerTests : IDisposable
     }
 
     [Fact]
-    public void LinkedResources_AreMapTileAndSlotPalettes()
+    public void Dependencies_AreMapTileSlotAndTilePaletteEdges()
     {
         _map.Write(Entry16(0));
         using var tilemap = Create(_map, _gba, MapScreenLayout.Linear, 1, 1, 0, _slot0, null, _slot1);
+        var tilePalette = new ScatteredArranger("tile palette", PixelColorType.Indexed, ElementLayout.Tiled, 1, 1, 8, 8);
+        tilemap.TilePaletteArranger = tilePalette;
 
-        Assert.True(tilemap.LinkedResources.ToHashSet().SetEquals([_map, _tiles, _slot0, _slot1]));
+        Assert.True(tilemap.Dependencies.ToHashSet().SetEquals([
+            new(_map, ResourceEdgeKind.Cascade),
+            new(_tiles, ResourceEdgeKind.Cascade),
+            new(_slot0, ResourceEdgeKind.FallbackPalette),
+            new(_slot1, ResourceEdgeKind.FallbackPalette),
+            new(tilePalette, ResourceEdgeKind.ClearTilePalette)]));
     }
 
-    internal static void AssertSameElements(Arranger expected, Arranger actual)
+    internal static void AssertSameElements(IArrangerView expected, IArrangerView actual)
     {
         Assert.Equal(expected.ArrangerElementSize, actual.ArrangerElementSize);
 

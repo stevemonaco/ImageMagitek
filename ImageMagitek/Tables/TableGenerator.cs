@@ -674,16 +674,7 @@ public sealed class TableGenerator
     /// <summary>
     /// A model's size summary: the compression format's name, 'N colors', 'WxH elements', 'N metatiles', 'WxH blocks' or 'WxH tiles' (LIB-TABLES-120)
     /// </summary>
-    public static string Summarize(ResourceModel model) => model switch
-    {
-        CompressedDataModel compressed => compressed.Compression,
-        PaletteModel palette => $"{palette.ColorSources.Sum(x => x switch { FileColorSourceModel file => file.Entries, ScatteredColorSourceModel scattered => scattered.Entries, _ => 1 })} colors",
-        ScatteredArrangerModel arranger => $"{arranger.ArrangerElementSize.Width}x{arranger.ArrangerElementSize.Height} elements",
-        MetatileSetModel set => $"{set.MetatileCount} metatiles",
-        MetatileMapModel map => $"{map.Width}x{map.Height} blocks",
-        TilemapModel tilemap => $"{tilemap.Width}x{tilemap.Height} tiles",
-        _ => ""
-    };
+    public static string Summarize(ResourceModel model) => ResourceKindRegistry.BuiltIn.FindByModel(model)?.Summarize(model) ?? "";
 
     private List<int?> ReadCellStream(Candidate candidate, int cellCount)
     {

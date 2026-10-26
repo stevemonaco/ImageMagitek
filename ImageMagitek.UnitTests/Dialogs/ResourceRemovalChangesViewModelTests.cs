@@ -39,4 +39,17 @@ public sealed class ResourceRemovalChangesViewModelTests
         Assert.Equal([tilemap], vm.ChangedResources);
         Assert.Equal("uses the generated tile palette", tilemap.ChangeDescription);
     }
+
+    [Fact]
+    public void ResourceLosingSlotPalette_ListedUnderChanged()
+    {
+        var removed = Change("removed", true, false, false);
+        var node = new ResourceFolderNode("set", new ResourceFolder("set"));
+        var set = new ResourceChangeViewModel(new ResourceChange(node, "set", false, false, false, LostSlotPalette: true));
+
+        var vm = new ResourceRemovalChangesViewModel(removed, [removed, set]);
+
+        Assert.Equal([set], vm.ChangedResources);
+        Assert.Equal("removed palette slots use slot 0", set.ChangeDescription);
+    }
 }

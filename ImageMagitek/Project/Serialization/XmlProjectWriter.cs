@@ -7,8 +7,6 @@ using System.Xml;
 using System.Xml.Linq;
 using CommunityToolkit.Diagnostics;
 using ImageMagitek.Colors;
-using ImageMagitek.Metatiles;
-using ImageMagitek.Tilemaps;
 using ImageMagitek.Utility;
 using Monaco.PathTree;
 
@@ -21,14 +19,16 @@ public sealed class XmlProjectWriter : IProjectWriter
     private readonly ProjectTree _tree;
     private readonly IColorFactory _colorFactory;
     private readonly string _resourceBaseDirectory;
+    private readonly ResourceKindRegistry _kinds;
     private string _journalDirectory;
 
-    public XmlProjectWriter(ProjectTree tree, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
+    public XmlProjectWriter(ProjectTree tree, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources, ResourceKindRegistry kinds)
     {
         Guard.IsNotNull(tree);
         Guard.IsNotNull(tree.Root.DiskLocation);
 
         _tree = tree;
+        _kinds = kinds;
         _colorFactory = colorFactory;
         _globalResources = globalResources.ToList();
         _globalDefaultPalette = globalResources.OfType<Palette>().First();
@@ -42,14 +42,15 @@ public sealed class XmlProjectWriter : IProjectWriter
     /// </summary>
     /// <param name="projectFileName">Filename to write to</param>
     /// <param name="additionalFiles">Files outside the tree committed in the same transaction</param>
-    public async Task<MagitekResult> WriteProjectAsync(string projectFileName, IReadOnlyList<(string Path, string Contents)>? additionalFiles = null)
+    public async Task<MagitekResult> WriteProjectAsync(string projectFileName, IReadOnlyList<(string Path, string Contents)>? additionalFiles = null,
+        Dictionary<IProjectResource, string>? resourceMap = null)
     {
         if (string.IsNullOrWhiteSpace(projectFileName))
             throw new ArgumentException($"{nameof(WriteProjectAsync)} property '{nameof(projectFileName)}' was null or empty");
 
         _journalDirectory = Path.GetDirectoryName(Path.GetFullPath(projectFileName))!;
 
-        var serializeResult = await TrySerializeProjectTreeAsync(_tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode), additionalFiles).ConfigureAwait(false);
+        var serializeResult = await TrySerializeProjectTreeAsync(_tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode), additionalFiles, resourceMap).ConfigureAwait(false);
         return serializeResult.Match<MagitekResult>(
             success => MagitekResult.SuccessResult,
             failed => new MagitekResult.Failed(failed.Reasons.First()));
@@ -106,21 +107,23 @@ public sealed class XmlProjectWriter : IProjectWriter
     }
 
     /// <inheritdoc/>
-    public async Task<MagitekResult> WriteResourcesAsync(IReadOnlyList<ResourceNode> nodes, IReadOnlyList<(string Path, string Contents)>? additionalFiles = null)
+    public async Task<MagitekResult> WriteResourcesAsync(IReadOnlyList<ResourceNode> nodes, IReadOnlyList<(string Path, string Contents)>? additionalFiles = null,
+        Dictionary<IProjectResource, string>? resourceMap = null)
     {
-        var serializeResult = await TrySerializeProjectTreeAsync(nodes, additionalFiles).ConfigureAwait(false);
+        var serializeResult = await TrySerializeProjectTreeAsync(nodes, additionalFiles, resourceMap).ConfigureAwait(false);
         return serializeResult.Match<MagitekResult>(
             success => MagitekResult.SuccessResult,
             failed => new MagitekResult.Failed(failed.Reasons.First()));
     }
 
-    private async Task<MagitekResults> TrySerializeProjectTreeAsync(IEnumerable<ResourceNode> nodes, IReadOnlyList<(string Path, string Contents)>? additionalFiles)
+    private async Task<MagitekResults> TrySerializeProjectTreeAsync(IEnumerable<ResourceNode> nodes, IReadOnlyList<(string Path, string Contents)>? additionalFiles,
+        Dictionary<IProjectResource, string>? resourceMap)
     {
         var actions = new List<(string targetPath, string contents, ResourceNode node, ResourceModel model)>();
 
         foreach (var node in nodes)
         {
-            var mapResult = MapCurrentModel(node);
+            var mapResult = MapCurrentModel(node, resourceMap);
             if (mapResult.HasFailed)
                 return new MagitekResults.Failed([mapResult.AsError.Reason]);
 
@@ -139,23 +142,14 @@ public sealed class XmlProjectWriter : IProjectWriter
     {
         resourceMap ??= _tree.CreateResourceMap(_globalResources);
 
-        ResourceModel? model = node switch
-        {
-            ProjectNode { Item: ImageProject project } => project.MapToModel(ProjectFormat.Required(_tree)),
-            DataFileNode { Item: FileDataSource df } => df.MapToModel(),
-            CompressedDataNode { Item: CompressedDataSource compressed } => compressed.MapToModel(resourceMap),
-            TilemapNode { Item: TilemapArranger tilemap } => tilemap.MapToModel(resourceMap),
-            MetatileSetNode { Item: MetatileSet metatileSet } => metatileSet.MapToModel(resourceMap),
-            MetatileMapNode { Item: MetatileMap metatileMap } => metatileMap.MapToModel(resourceMap),
-            PaletteNode paletteNode => MapPaletteModel(paletteNode, resourceMap),
-            ArrangerNode { Item: ScatteredArranger arranger } => arranger.MapToModel(resourceMap),
-            _ => null
-        };
+        if (node is ProjectNode { Item: ImageProject project })
+            return new MagitekResult<ResourceModel>.Success(project.MapToModel(ProjectFormat.Required(_tree, _kinds)));
 
-        if (model is null)
+        var kind = _kinds.FindByNode(node);
+        if (kind?.MapToModel(node, resourceMap, _colorFactory) is not { } model)
             return new MagitekResult<ResourceModel>.Failed($"Cannot write resource of type '{node.GetType()}'");
 
-        if (model is PaletteModel paletteModel && FindUnwritableReason(paletteModel) is string reason)
+        if (kind.FindUnwritableReason(model, _colorFactory) is string reason)
             return new MagitekResult<ResourceModel>.Failed(reason);
 
         return new MagitekResult<ResourceModel>.Success(model);
@@ -194,56 +188,19 @@ public sealed class XmlProjectWriter : IProjectWriter
         return result;
     }
 
-    private PaletteModel MapPaletteModel(PaletteNode node, Dictionary<IProjectResource, string> resourceMap) =>
-        node.CommittedModel?.Invoke(resourceMap) ?? ((Palette)node.Item).MapToModel(resourceMap, _colorFactory);
-
-    private string? FindUnwritableReason(PaletteModel model)
-    {
-        if (model.DataFileKey is null)
-            return $"Palette '{model.Name}' cannot be saved because it has no data file";
-
-        var foreignType = _colorFactory.CreateColor(model.ColorModel).GetType();
-        var index = 0;
-
-        foreach (var source in model.ColorSources)
-        {
-            if (source is ProjectForeignColorSourceModel foreign && foreign.Value.GetType() != foreignType)
-                return $"Palette '{model.Name}' cannot be saved because color {index} is not a {model.ColorModel} color";
-
-            index += source switch
-            {
-                FileColorSourceModel fileSource => fileSource.Entries,
-                ScatteredColorSourceModel scatteredSource => scatteredSource.Entries,
-                _ => 1
-            };
-        }
-
-        if (index > Palette.MaxEntries)
-            return $"Palette '{model.Name}' cannot be saved because it has {index} colors, more than the {Palette.MaxEntries} a palette can hold";
-
-        return null;
-    }
-
     /// <inheritdoc/>
     public string SerializeModel(ResourceModel model) => Stringify(ToElement(model));
 
     private XElement ToElement(ResourceModel model)
     {
-        return model switch
-        {
-            DataFileModel dataFileModel => Serialize(dataFileModel),
-            CompressedDataModel compressedModel => Serialize(compressedModel),
-            TilemapModel tilemapModel => Serialize(tilemapModel),
-            MetatileSetModel metatileSetModel => Serialize(metatileSetModel),
-            MetatileMapModel metatileMapModel => Serialize(metatileMapModel),
-            PaletteModel paletteModel => Serialize(paletteModel),
-            ScatteredArrangerModel arrangerModel => Serialize(arrangerModel),
-            ImageProjectModel projectModel => Serialize(projectModel),
-            _ => throw new InvalidOperationException($"{nameof(WriteProjectAsync)}: unexpected resource model of type '{model.GetType()}'"),
-        };
+        if (model is ImageProjectModel projectModel)
+            return Serialize(projectModel);
+
+        return _kinds.FindByModel(model)?.Write(model, _resourceBaseDirectory, _colorFactory)
+            ?? throw new InvalidOperationException($"{nameof(WriteProjectAsync)}: unexpected resource model of type '{model.GetType()}'");
     }
 
-    private XElement Serialize(ImageProjectModel projectModel)
+    private static XElement Serialize(ImageProjectModel projectModel)
     {
         var element = new XElement("project");
         element.Add(new XAttribute("version", projectModel.Version.ToString(2)));
@@ -252,271 +209,6 @@ public sealed class XmlProjectWriter : IProjectWriter
             element.Add(new XAttribute("root", projectModel.Root));
 
         return element;
-    }
-
-    private XElement Serialize(DataFileModel dataFileModel)
-    {
-        var element = new XElement("datafile");
-
-        var relativePath = Path.GetRelativePath(_resourceBaseDirectory, dataFileModel.Location);
-        element.Add(new XAttribute("location", relativePath));
-        return element;
-    }
-
-    private static XElement Serialize(CompressedDataModel model)
-    {
-        var element = new XElement("compresseddata");
-        element.Add(new XAttribute("parent", model.ParentKey));
-        element.Add(new XAttribute("fileoffset", $"{model.FileOffset:X}"));
-        element.Add(new XAttribute("compression", model.Compression));
-        return element;
-    }
-
-    private static XElement Serialize(TilemapModel model)
-    {
-        var element = new XElement("tilemap");
-        element.Add(new XAttribute("mapdatafile", model.MapDataKey));
-        element.Add(new XAttribute("mapoffset", $"{model.MapOffset:X}"));
-        element.Add(new XAttribute("width", model.Width));
-        element.Add(new XAttribute("height", model.Height));
-
-        if (model.Layout != MapScreenLayout.Linear)
-            element.Add(new XAttribute("layout", model.Layout.ToXmlName()));
-
-        element.Add(new XAttribute("format", model.FormatName));
-        element.Add(new XAttribute("tiledatafile", model.TileDataKey));
-        element.Add(new XAttribute("tileoffset", $"{model.TileOffset:X}"));
-        element.Add(new XAttribute("codec", model.CodecName));
-
-        if (model.FirstTile != 0)
-            element.Add(new XAttribute("firsttile", model.FirstTile));
-
-        if (model.EmptyTile != 0)
-            element.Add(new XAttribute("emptytile", model.EmptyTile));
-
-        if (model.TileCount is { } tileCount)
-            element.Add(new XAttribute("tilecount", tileCount));
-
-        if (model.TilePaletteKey is not null)
-            element.Add(new XAttribute("tilepalette", model.TilePaletteKey));
-
-        foreach (var (index, paletteKey) in model.PaletteSlots.OrderBy(x => x.Key))
-            element.Add(new XElement("paletteslot", new XAttribute("index", index), new XAttribute("palette", paletteKey)));
-
-        return element;
-    }
-
-    private static XElement Serialize(MetatileSetModel model)
-    {
-        var element = new XElement("metatileset");
-        element.Add(new XAttribute("metatiledatafile", model.MetatileDataKey));
-        element.Add(new XAttribute("metatileoffset", $"{model.MetatileOffset:X}"));
-        element.Add(new XAttribute("metatilecount", model.MetatileCount));
-
-        if (model.MetatileWidth != 2)
-            element.Add(new XAttribute("metatilewidth", model.MetatileWidth));
-
-        if (model.MetatileHeight != 2)
-            element.Add(new XAttribute("metatileheight", model.MetatileHeight));
-
-        if (model.Layers != 1)
-            element.Add(new XAttribute("layers", model.Layers));
-
-        element.Add(new XAttribute("format", model.FormatName));
-
-        if (model.Order != MetatileOrder.Interleaved)
-            element.Add(new XAttribute("order", model.Order.ToXmlName()));
-
-        element.Add(new XAttribute("tiledatafile", model.TileDataKey));
-        element.Add(new XAttribute("tileoffset", $"{model.TileOffset:X}"));
-        element.Add(new XAttribute("codec", model.CodecName));
-
-        if (model.FirstTile != 0)
-            element.Add(new XAttribute("firsttile", model.FirstTile));
-
-        if (model.TileCount is { } tileCount)
-            element.Add(new XAttribute("tilecount", tileCount));
-
-        if (model.AttributeDataKey is { } attributeKey)
-        {
-            element.Add(new XAttribute("attributedatafile", attributeKey));
-            element.Add(new XAttribute("attributeoffset", $"{model.AttributeOffset:X}"));
-
-            if (model.AttributeSize is { } attributeSize)
-                element.Add(new XAttribute("attributesize", attributeSize));
-        }
-
-        foreach (var (index, paletteKey) in model.PaletteSlots.OrderBy(x => x.Key))
-            element.Add(new XElement("paletteslot", new XAttribute("index", index), new XAttribute("palette", paletteKey)));
-
-        return element;
-    }
-
-    private static XElement Serialize(MetatileMapModel model)
-    {
-        var element = new XElement("metatilemap");
-        element.Add(new XAttribute("mapdatafile", model.MapDataKey));
-        element.Add(new XAttribute("mapoffset", $"{model.MapOffset:X}"));
-        element.Add(new XAttribute("width", model.Width));
-        element.Add(new XAttribute("height", model.Height));
-
-        if (model.Layout != MapScreenLayout.Linear)
-            element.Add(new XAttribute("layout", model.Layout.ToXmlName()));
-
-        element.Add(new XAttribute("format", model.FormatName));
-
-        if (model.EmptyBlock != 0)
-            element.Add(new XAttribute("emptyblock", model.EmptyBlock));
-
-        foreach (var (setKey, setBase) in model.Sets)
-            element.Add(new XElement("set", new XAttribute("metatileset", setKey), new XAttribute("base", setBase)));
-
-        return element;
-    }
-
-    private XElement Serialize(PaletteModel paletteModel)
-    {
-        var element = new XElement("palette");
-        element.Add(new XAttribute("datafile", paletteModel.DataFileKey!));
-        element.Add(new XAttribute("color", paletteModel.ColorModel.ToString()));
-        element.Add(new XAttribute("zeroindextransparent", paletteModel.ZeroIndexTransparent));
-
-        foreach (var source in paletteModel.ColorSources)
-        {
-            if (source is FileColorSourceModel fileSource)
-            {
-                var fileElement = new XElement("filesource");
-                fileElement.Add(new XAttribute("fileoffset", $"{fileSource.FileAddress:X}"));
-
-                fileElement.Add(new XAttribute("entries", fileSource.Entries));
-
-                if (fileSource.Endian == Endian.Big)
-                    fileElement.Add(new XAttribute("endian", "big"));
-
-                element.Add(fileElement);
-            }
-            else if (source is ProjectNativeColorSourceModel nativeSource)
-            {
-                var nativeElement = new XElement("nativecolor");
-                var hexColor = _colorFactory.ToHexString(nativeSource.Value);
-                nativeElement.Add(new XAttribute("value", hexColor));
-                element.Add(nativeElement);
-            }
-            else if (source is ProjectForeignColorSourceModel foreignSource)
-            {
-                var foreignElement = new XElement("foreigncolor");
-                var hexColor = _colorFactory.ToHexString(foreignSource.Value);
-                foreignElement.Add(new XAttribute("value", hexColor));
-                element.Add(foreignElement);
-            }
-            else if (source is ScatteredColorSourceModel scatteredSource)
-            {
-                var scatteredElement = new XElement("scatteredcolor");
-                scatteredElement.Add(new XAttribute("entries", scatteredSource.Entries));
-
-                foreach (var (field, stride) in scatteredSource.Fields)
-                {
-                    var fieldElement = new XElement("field");
-                    fieldElement.Add(new XAttribute("fileoffset", $"{field.Offset:X}"));
-
-                    if (field.LowBit != 0)
-                        fieldElement.Add(new XAttribute("lowbit", field.LowBit));
-
-                    fieldElement.Add(new XAttribute("bits", field.Bits));
-
-                    if (field.Shift != 0)
-                        fieldElement.Add(new XAttribute("shift", field.Shift));
-
-                    if (stride != 8 && scatteredSource.Entries > 1)
-                        fieldElement.Add(new XAttribute("stride", stride));
-
-                    scatteredElement.Add(fieldElement);
-                }
-
-                element.Add(scatteredElement);
-            }
-            else
-            {
-                throw new NotSupportedException($"Color source model of type '{source.GetType()}' is not supported");
-            }
-        }
-
-        return element;
-    }
-
-    private XElement Serialize(ScatteredArrangerModel arrangerModel)
-    {
-        var mostUsedCodecName = arrangerModel.FindMostFrequentElementPropertyValue(x => x.CodecName);
-        var mostUsedFileKey = arrangerModel.FindMostFrequentElementPropertyValue(x => x.DataFileKey);
-        var mostUsedPaletteKey = arrangerModel.FindMostFrequentElementPropertyValue(x => x.PaletteKey);
-
-        var arrangerNode = new XElement("arranger");
-        arrangerNode.Add(new XAttribute("elementsx", arrangerModel.ArrangerElementSize.Width));
-        arrangerNode.Add(new XAttribute("elementsy", arrangerModel.ArrangerElementSize.Height));
-        arrangerNode.Add(new XAttribute("width", arrangerModel.ElementPixelSize.Width));
-        arrangerNode.Add(new XAttribute("height", arrangerModel.ElementPixelSize.Height));
-
-        if (arrangerModel.Layout == ElementLayout.Tiled)
-            arrangerNode.Add(new XAttribute("layout", "tiled"));
-        else if (arrangerModel.Layout == ElementLayout.Single)
-            arrangerNode.Add(new XAttribute("layout", "single"));
-
-        if (arrangerModel.ColorType == PixelColorType.Indexed)
-            arrangerNode.Add(new XAttribute("color", "indexed"));
-        else if (arrangerModel.ColorType == PixelColorType.Direct)
-            arrangerNode.Add(new XAttribute("color", "direct"));
-
-        arrangerNode.Add(new XAttribute("defaultcodec", mostUsedCodecName ?? ""));
-        arrangerNode.Add(new XAttribute("defaultdatafile", mostUsedFileKey ?? ""));
-
-        if (arrangerModel.ColorType == PixelColorType.Indexed)
-            arrangerNode.Add(new XAttribute("defaultpalette", mostUsedPaletteKey ?? ""));
-
-        for (int y = 0; y < arrangerModel.ArrangerElementSize.Height; y++)
-        {
-            for (int x = 0; x < arrangerModel.ArrangerElementSize.Width; x++)
-            {
-                var el = arrangerModel.ElementGrid[x, y];
-
-                if (el is null)
-                    continue;
-
-                var elNode = new XElement("element");
-                elNode.Add(new XAttribute("fileoffset", $"{el.FileAddress.ByteOffset:X}"));
-                elNode.Add(new XAttribute("posx", el.PositionX));
-                elNode.Add(new XAttribute("posy", el.PositionY));
-
-                if (el.FileAddress.BitOffset != 0)
-                    elNode.Add(new XAttribute("bitoffset", el.FileAddress.BitOffset));
-
-                if (el.CodecName != mostUsedCodecName)
-                    elNode.Add(new XAttribute("codec", el.CodecName));
-
-                if (el.DataFileKey != mostUsedFileKey)
-                    elNode.Add(new XAttribute("datafile", el.DataFileKey));
-
-                if (el.PaletteKey != mostUsedPaletteKey && arrangerModel.ColorType == PixelColorType.Indexed)
-                    elNode.Add(new XAttribute("palette", el.PaletteKey!));
-
-                if (el.Mirror == MirrorOperation.Horizontal)
-                    elNode.Add(new XAttribute("mirror", "horizontal"));
-                else if (el.Mirror == MirrorOperation.Vertical)
-                    elNode.Add(new XAttribute("mirror", "vertical"));
-                else if (el.Mirror == MirrorOperation.Both)
-                    elNode.Add(new XAttribute("mirror", "both"));
-
-                if (el.Rotation == RotationOperation.Left)
-                    elNode.Add(new XAttribute("rotation", "left"));
-                else if (el.Rotation == RotationOperation.Right)
-                    elNode.Add(new XAttribute("rotation", "right"));
-                else if (el.Rotation == RotationOperation.Turn)
-                    elNode.Add(new XAttribute("rotation", "turn"));
-
-                arrangerNode.Add(elNode);
-            }
-        }
-
-        return arrangerNode;
     }
 
     private string Stringify(XElement resourceElement)

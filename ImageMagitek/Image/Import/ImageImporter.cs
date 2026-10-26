@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -12,7 +12,7 @@ namespace ImageMagitek.Image.Import;
 /// </summary>
 public static class ImageImporter
 {
-    public static MagitekResult<ImageImportPreview> Prepare(Arranger arranger, string imagePath, ImageImportOptions options, IImageFileAdapter adapter)
+    public static MagitekResult<ImageImportPreview> Prepare(IArrangerView arranger, string imagePath, ImageImportOptions options, IImageFileAdapter adapter)
     {
         return adapter.LoadImage(imagePath).Match(
             success => Prepare(arranger, success.Result, options),
@@ -25,7 +25,7 @@ public static class ImageImporter
     /// </summary>
     /// <param name="offset">Arranger pixel where the image's top-left pixel lands; may be negative</param>
     /// <param name="bounds">Arranger pixels that may change; defaults to the whole arranger</param>
-    public static MagitekResult<ImageImportPreview> Prepare(Arranger arranger, DecodedImage source, ImageImportOptions options,
+    public static MagitekResult<ImageImportPreview> Prepare(IArrangerView arranger, DecodedImage source, ImageImportOptions options,
         Point offset = default, Rectangle? bounds = null)
     {
         if (arranger.GetReadOnlyReason() is { } reason)
@@ -42,7 +42,7 @@ public static class ImageImporter
         };
     }
 
-    private static ImageImportPreview PrepareIndexed(Arranger arranger, DecodedImage source, ImageImportOptions options, Point offset, Rectangle region)
+    private static ImageImportPreview PrepareIndexed(IArrangerView arranger, DecodedImage source, ImageImportOptions options, Point offset, Rectangle region)
     {
         var current = new IndexedImage(arranger);
         var result = new IndexedImage(arranger);
@@ -163,7 +163,7 @@ public static class ImageImporter
         return true;
     }
 
-    private static ImageImportPreview PrepareDirect(Arranger arranger, DecodedImage source, Point offset, Rectangle region)
+    private static ImageImportPreview PrepareDirect(IArrangerView arranger, DecodedImage source, Point offset, Rectangle region)
     {
         var current = new DirectImage(arranger);
         var result = new DirectImage(arranger);

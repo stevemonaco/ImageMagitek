@@ -10,10 +10,10 @@ namespace ImageMagitek;
 
 public sealed class DirectImage : ImageBase<ColorRgba32>
 {
-    public override Arranger Arranger { get; }
+    public override IArrangerView Arranger { get; }
     public override ColorRgba32[] Image { get; protected set; }
 
-    public DirectImage(Arranger arranger) :
+    public DirectImage(IArrangerView arranger) :
         this(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height)
     {
     }
@@ -26,7 +26,7 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
     /// <param name="y">Top-edge of subsection in pixel coordinates</param>
     /// <param name="width">Width of subsection in pixel coordinates</param>
     /// <param name="height">Height of subsection in pixel coordinates</param>
-    public DirectImage(Arranger arranger, int x, int y, int width, int height)
+    public DirectImage(IArrangerView arranger, int x, int y, int width, int height)
     {
         if (arranger is null)
             throw new ArgumentNullException($"{nameof(DirectImage)}.Ctor parameter '{nameof(arranger)}' was null");

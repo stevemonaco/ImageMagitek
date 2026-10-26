@@ -19,10 +19,10 @@ public static class ProjectFormat
     public static Version Minimum { get; } = new(1, 0);
 
     /// <summary>
-    /// The lowest version that can hold the project: 1.1 when it has a tilemap, compressed data, a metatile set or a metatile map, otherwise 1.0
+    /// The lowest version that can hold the project: the highest minimum version of any resource kind in it, and at least <see cref="Minimum"/>
     /// </summary>
-    public static Version Required(ProjectTree tree) =>
-        tree.EnumerateDepthFirst().Any(x => x is TilemapNode or CompressedDataNode or MetatileSetNode or MetatileMapNode) ? Current : Minimum;
+    public static Version Required(ProjectTree tree, ResourceKindRegistry kinds) =>
+        tree.EnumerateDepthFirst().Select(kinds.FindByNode).OfType<ResourceKind>().Select(x => x.MinimumVersion).Append(Minimum).Max()!;
 
     /// <summary>
     /// Parses a <c>major.minor</c> version, independently of the current culture.

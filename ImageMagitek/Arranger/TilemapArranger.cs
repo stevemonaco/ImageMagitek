@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
@@ -12,40 +11,35 @@ using ImageMagitek.Tilemaps;
 namespace ImageMagitek;
 
 /// <summary>
-/// An arranger whose elements are derived from the entries of a tilemap and the tile set they index.
-/// Its grid is always what the map decodes to; edits are made on a clone and written back with <see cref="WriteEntries"/>.
+/// A tilemap: a read-only view whose elements are derived from the map's entries and the tile set they index.
+/// Edits are made on a working <see cref="TilemapGrid"/> of entries and written back with <see cref="WriteEntries"/>.
 /// </summary>
-public sealed class TilemapArranger : Arranger, IDisposable
+public sealed class TilemapArranger : IProjectResource, IArrangerView, IDisposable, IUnavailableResource
 {
     private readonly object _gridLock = new();
     private readonly IGraphicsCodec[] _slotCodecs;
     private readonly ICodecFactory _codecFactory;
     private readonly TileSet _tileSet;
-    private readonly ConditionalWeakTable<IGraphicsCodec, StrongBox<int>> _codecSlots = new();
-    private ArrangerElement?[,] _grid;
-    private int[,] _gridSlots;
+    private ArrangerElement?[,] _elements;
+    private TilemapGrid _entries;
     private int _version = 1;
     private int _builtVersion;
     private string? _mapError;
     private int _highestTileIndex;
     private int _outOfRangeCount;
 
-    /// <inheritdoc/>
-    protected override ArrangerElement?[,] ElementGrid
-    {
-        get
-        {
-            EnsureGrid();
-            return _grid;
-        }
-        set => _grid = value;
-    }
+    public string Name { get; set; }
+    public bool ShouldBeSerialized { get; set; } = true;
+    public bool CanContainChildResources => false;
 
-    /// <inheritdoc/>
-    public override string Name { get; set; }
+    public Size ArrangerElementSize { get; }
+    public Size ElementPixelSize { get; }
 
-    /// <inheritdoc/>
-    public override bool ShouldBeSerialized { get; set; } = true;
+    public Size ArrangerPixelSize =>
+        new(ArrangerElementSize.Width * ElementPixelSize.Width, ArrangerElementSize.Height * ElementPixelSize.Height);
+
+    public ElementLayout Layout => ElementLayout.Tiled;
+    public PixelColorType ColorType => PixelColorType.Indexed;
 
     public DataSource MapSource { get; }
     public long MapOffset { get; }
@@ -96,10 +90,10 @@ public sealed class TilemapArranger : Arranger, IDisposable
             {
                 for (int x = 0; x < ArrangerElementSize.Width; x++)
                 {
-                    if (_grid[y, x] is null)
+                    if (_elements[y, x] is null || _entries[x, y] is not { } entry)
                         continue;
 
-                    var slot = _gridSlots[y, x];
+                    var slot = entry.Palette;
                     counts[slot < counts.Length && PaletteSlots[slot] is not null ? slot : 0]++;
                 }
             }
@@ -124,6 +118,10 @@ public sealed class TilemapArranger : Arranger, IDisposable
             return _mapError;
         }
     }
+
+    FileDataSource? IUnavailableResource.FindMissingDataSource() => ArrangerExtensions.FindMissingDataSource(this);
+
+    string? IUnavailableResource.UnavailableReason => MapError;
 
     /// <summary>
     /// The highest tile index among the entries read, or -1 when none was read
@@ -174,9 +172,6 @@ public sealed class TilemapArranger : Arranger, IDisposable
             throw new ArgumentException($"Tilemap '{name}' has empty tile index {emptyTileIndex}, which does not fit the {mapFormat.TileIndex.Bits}-bit tile field of map format '{mapFormat.Name}'");
 
         Name = name;
-        Mode = ArrangerMode.Tilemap;
-        Layout = ElementLayout.Tiled;
-        ColorType = PixelColorType.Indexed;
         MapSource = mapSource;
         MapOffset = mapOffset;
         MapFormat = mapFormat;
@@ -193,8 +188,8 @@ public sealed class TilemapArranger : Arranger, IDisposable
 
         ElementPixelSize = _tileSet.TileSize;
         ArrangerElementSize = new Size(width, height);
-        _grid = new ArrangerElement?[height, width];
-        _gridSlots = new int[height, width];
+        _elements = new ArrangerElement?[height, width];
+        _entries = new TilemapGrid(new MapEntry?[height, width]);
 
         MapSource.DataWritten += OnSourceWritten;
         if (!ReferenceEquals(TileSource, MapSource))
@@ -240,87 +235,117 @@ public sealed class TilemapArranger : Arranger, IDisposable
 
     private void Rebuild()
     {
-        var width = ArrangerElementSize.Width;
-        var height = ArrangerElementSize.Height;
-        var grid = new ArrangerElement?[height, width];
-        var gridSlots = new int[height, width];
-        var entryBytes = MapFormat.EntryBytes;
-        var (data, error) = ReadMapData();
-
+        var grid = ReadGrid(out var error);
         var tileCount = TileCount;
         var highest = -1;
         var outOfRange = 0;
+
+        foreach (var entry in grid.Entries)
+        {
+            if (entry is not { } e)
+                continue;
+
+            highest = Math.Max(highest, e.TileIndex);
+            if (!IsInTileSet(e.TileIndex, tileCount))
+                outOfRange++;
+        }
+
+        _elements = CreateElements(grid, _slotCodecs);
+        _entries = grid;
+        _mapError = error;
+        _highestTileIndex = highest;
+        _outOfRangeCount = outOfRange;
+    }
+
+    private TilemapGrid ReadGrid(out string? error)
+    {
+        var width = ArrangerElementSize.Width;
+        var height = ArrangerElementSize.Height;
+        var entries = new MapEntry?[height, width];
+        var entryBytes = MapFormat.EntryBytes;
+        (var data, error) = ReadMapData();
 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
                 var offset = (long)ScreenLayout.EntryIndex(x, y, width) * entryBytes;
-                if (offset + entryBytes > data.Length)
-                    continue;
-
-                var entry = MapFormat.Decode(data.AsSpan((int)offset, entryBytes));
-                highest = Math.Max(highest, entry.TileIndex);
-
-                if (entry.TileIndex < FirstTileIndex || entry.TileIndex - FirstTileIndex >= tileCount)
-                {
-                    outOfRange++;
-                    continue;
-                }
-
-                var slot = entry.Palette < _slotCodecs.Length ? entry.Palette : 0;
-                gridSlots[y, x] = slot;
-                var codec = _slotCodecs[slot];
-                grid[y, x] = _tileSet.CreateTileElement(entry.TileIndex, codec, entry.Mirror, x, y);
+                if (offset + entryBytes <= data.Length)
+                    entries[y, x] = MapFormat.Decode(data.AsSpan((int)offset, entryBytes));
             }
         }
 
-        _grid = grid;
-        _gridSlots = gridSlots;
-        _mapError = error;
-        _highestTileIndex = highest;
-        _outOfRangeCount = outOfRange;
+        return new TilemapGrid(entries);
     }
 
-    /// <exception cref="InvalidOperationException">Always; a tilemap's size comes from its resource definition</exception>
-    public override void Resize(int arrangerWidth, int arrangerHeight) =>
-        throw new InvalidOperationException($"Tilemap '{Name}' cannot be resized");
+    internal bool IsInTileSet(int tileIndex) => IsInTileSet(tileIndex, TileCount);
 
-    /// <exception cref="InvalidOperationException">Always; edit a clone and write it back with <see cref="WriteEntries"/></exception>
-    public override void SetElement(in ArrangerElement? element, int elemX, int elemY) =>
-        throw new InvalidOperationException($"Tilemap '{Name}' derives its elements from its map entries; edit a clone and write its entries");
-
-    /// <exception cref="InvalidOperationException">Always; edit a clone and write it back with <see cref="WriteEntries"/></exception>
-    public override void ResetElement(int elemX, int elemY) =>
-        throw new InvalidOperationException($"Tilemap '{Name}' derives its elements from its map entries; edit a clone and write its entries");
+    private bool IsInTileSet(int tileIndex, int tileCount) => tileIndex >= FirstTileIndex && tileIndex - FirstTileIndex < tileCount;
 
     /// <summary>
-    /// Bakes the region into a <see cref="ScatteredArranger"/> whose elements have their own codec instances
+    /// The element of every cell of <paramref name="grid"/> shown with <paramref name="codecs"/>, one per palette slot. A cell with no entry,
+    /// or whose tile is outside the tile set, has none; an entry naming a slot past the codecs uses slot 0.
     /// </summary>
-    protected override Arranger CloneArrangerCore(int posX, int posY, int width, int height)
+    internal ArrangerElement?[,] CreateElements(TilemapGrid grid, IGraphicsCodec[] codecs)
     {
-        var elemX = posX / ElementPixelSize.Width;
-        var elemY = posY / ElementPixelSize.Height;
-        var elemsWidth = (posX + width + ElementPixelSize.Width - 1) / ElementPixelSize.Width - elemX;
-        var elemsHeight = (posY + height + ElementPixelSize.Height - 1) / ElementPixelSize.Height - elemY;
+        var elements = new ArrangerElement?[grid.Height, grid.Width];
+        var tileCount = TileCount;
 
-        var arranger = new ScatteredArranger(Name, ColorType, Layout, elemsWidth, elemsHeight, ElementPixelSize.Width, ElementPixelSize.Height);
-        var clonedCodecs = new Dictionary<int, IGraphicsCodec>();
-        var grid = ElementGrid;
-        var gridSlots = _gridSlots;
-
-        for (int y = 0; y < elemsHeight; y++)
+        for (int y = 0; y < grid.Height; y++)
         {
-            for (int x = 0; x < elemsWidth; x++)
+            for (int x = 0; x < grid.Width; x++)
             {
-                if (grid[y + elemY, x + elemX] is not ArrangerElement el)
+                if (grid[x, y] is not { } entry || !IsInTileSet(entry.TileIndex, tileCount))
                     continue;
 
-                var slot = gridSlots[y + elemY, x + elemX];
-                if (!clonedCodecs.TryGetValue(slot, out var codec))
+                var slot = entry.Palette < codecs.Length ? entry.Palette : 0;
+                elements[y, x] = _tileSet.CreateTileElement(entry.TileIndex, codecs[slot], entry.Mirror, x, y);
+            }
+        }
+
+        return elements;
+    }
+
+    public ArrangerElement? GetElement(int elemX, int elemY)
+    {
+        EnsureGrid();
+        return _elements[elemY, elemX];
+    }
+
+    /// <summary>
+    /// A working copy of the entries the map decodes to now
+    /// </summary>
+    public TilemapGrid CreateGrid()
+    {
+        EnsureGrid();
+        return _entries.Clone();
+    }
+
+    /// <summary>
+    /// A view of a new working grid with its own slot codecs, for an editor to draw and edit
+    /// </summary>
+    public TilemapView CreateWorkingView() => new(this, CreateGrid(), CloneSlotCodecs());
+
+    /// <summary>
+    /// Bakes the whole tilemap into a <see cref="ScatteredArranger"/> whose elements have their own codec instances
+    /// </summary>
+    public ScatteredArranger Bake()
+    {
+        var size = ArrangerElementSize;
+        var arranger = new ScatteredArranger(Name, ColorType, Layout, size.Width, size.Height, ElementPixelSize.Width, ElementPixelSize.Height);
+        var clonedCodecs = new Dictionary<IGraphicsCodec, IGraphicsCodec>();
+
+        for (int y = 0; y < size.Height; y++)
+        {
+            for (int x = 0; x < size.Width; x++)
+            {
+                if (GetElement(x, y) is not ArrangerElement el)
+                    continue;
+
+                if (!clonedCodecs.TryGetValue(el.Codec, out var codec))
                 {
-                    codec = CloneCodec(el.Codec, slot);
-                    clonedCodecs.Add(slot, codec);
+                    codec = CloneCodec(el.Codec);
+                    clonedCodecs.Add(el.Codec, codec);
                 }
 
                 arranger.SetElement(el.WithCodec(codec, x * ElementPixelSize.Width, y * ElementPixelSize.Height), x, y);
@@ -331,21 +356,25 @@ public sealed class TilemapArranger : Arranger, IDisposable
     }
 
     /// <summary>
-    /// A new codec instance showing the palette of <paramref name="slot"/>, shared by no other arranger
+    /// A new codec instance showing the palette of <paramref name="slot"/>, shared by no other view
     /// </summary>
-    public IGraphicsCodec CloneSlotCodec(int slot) => CloneCodec(_slotCodecs[slot], slot);
+    internal IGraphicsCodec CloneSlotCodec(int slot) => CloneCodec(_slotCodecs[slot]);
+
+    /// <summary>
+    /// New codec instances for every slot; slots that share a codec here share one clone
+    /// </summary>
+    internal IGraphicsCodec[] CloneSlotCodecs() => _tileSet.CreateSlotCodecs(PaletteSlots);
 
     /// <summary>
     /// The element for cell (<paramref name="cellX"/>, <paramref name="cellY"/>) reading tile <paramref name="tileIndex"/> of the tile set
     /// </summary>
-    public ArrangerElement CreateTileElement(int tileIndex, IGraphicsCodec codec, MirrorOperation mirror, int cellX, int cellY) =>
+    internal ArrangerElement CreateTileElement(int tileIndex, IGraphicsCodec codec, MirrorOperation mirror, int cellX, int cellY) =>
         _tileSet.CreateTileElement(tileIndex, codec, mirror, cellX, cellY);
 
-    private IGraphicsCodec CloneCodec(IGraphicsCodec codec, int slot)
+    private IGraphicsCodec CloneCodec(IGraphicsCodec codec)
     {
         var clone = _codecFactory.CloneCodec(codec);
         ((IIndexedCodec)clone).Palette = ((IIndexedCodec)codec).Palette;
-        _codecSlots.AddOrUpdate(clone, new StrongBox<int>(slot));
         return clone;
     }
 
@@ -370,52 +399,39 @@ public sealed class TilemapArranger : Arranger, IDisposable
     }
 
     /// <summary>
-    /// The palette slot an entry should name for a cell shown with <paramref name="codec"/>: LIB-TILEMAPS-042 preferring the slot the codec
-    /// was cloned for by this tilemap, otherwise <paramref name="fallbackSlot"/>; null when the codec's palette is in no slot
-    /// </summary>
-    public int? FindCodecSlot(IGraphicsCodec codec, int fallbackSlot)
-    {
-        if (codec is not IIndexedCodec { Palette: { } palette })
-            return null;
-
-        var preferred = _codecSlots.TryGetValue(codec, out var slot) ? slot.Value : fallbackSlot;
-        return FindPaletteSlot(palette, preferred);
-    }
-
-    /// <summary>
     /// The tile index an entry should hold to show the tile <paramref name="element"/> reads, or why it is not a tile of this tile set
     /// </summary>
     /// <returns>On failure, a reason that completes "element at (x, y) ..."</returns>
-    public MagitekResult<int> FindTileIndex(ArrangerElement element) => _tileSet.FindTileIndex(element, MapFormat);
+    internal MagitekResult<int> FindTileIndex(ArrangerElement element) => _tileSet.FindTileIndex(element, MapFormat);
 
     /// <summary>
-    /// Checks that <paramref name="pasted"/> is a tile of this tile set and gives it a palette a slot holds:
-    /// its own when a slot holds it, otherwise the palette of the slot <paramref name="destination"/> uses (slot 0 when the cell is empty)
+    /// The entry showing <paramref name="pasted"/> in a cell that holds <paramref name="destination"/>, or why it is not a tile of this tile set.
+    /// Its slot shows the element's palette, preferring the destination's slot; when no slot does, it is the destination's slot (slot 0 for an empty cell).
     /// </summary>
-    public MagitekResult<ArrangerElement> ToCellElement(ArrangerElement pasted, ArrangerElement? destination)
+    /// <returns>On failure, a reason that completes "element at (x, y) ..."</returns>
+    internal MagitekResult<MapEntry> ToEntry(ArrangerElement pasted, MapEntry? destination)
     {
         var tileResult = FindTileIndex(pasted);
         if (tileResult.HasFailed)
-            return new MagitekResult<ArrangerElement>.Failed(tileResult.AsError.Reason);
+            return new MagitekResult<MapEntry>.Failed(tileResult.AsError.Reason);
 
-        if (pasted.Codec is IIndexedCodec { Palette: { } palette } && FindPaletteSlot(palette, 0) is not null)
-            return new MagitekResult<ArrangerElement>.Success(pasted);
+        var destinationSlot = destination?.Palette ?? 0;
+        var slot = pasted.Codec is IIndexedCodec { Palette: { } palette } ? FindPaletteSlot(palette, destinationSlot) ?? destinationSlot : destinationSlot;
 
-        var slot = destination?.Codec is IIndexedCodec { Palette: { } destinationPalette } ? FindPaletteSlot(destinationPalette, 0) ?? 0 : 0;
-        var codec = CloneCodec(_slotCodecs[slot], slot);
-        return new MagitekResult<ArrangerElement>.Success(pasted.WithCodec(codec));
+        return new MagitekResult<MapEntry>.Success(new MapEntry(tileResult.AsSuccess.Result, slot,
+            pasted.Mirror.FlipsHorizontally(), pasted.Mirror.FlipsVertically(), destination?.Priority ?? false));
     }
 
     /// <summary>
-    /// Writes the map entries that differ from <paramref name="working"/>, an edited arranger of the same size such as a clone, then flushes and notifies once.
+    /// Writes the map entries that differ from <paramref name="grid"/>, a working grid of the same size, then flushes and notifies once.
     /// Nothing is written when any cell is refused.
     /// </summary>
     /// <remarks>
-    /// An empty working cell becomes the empty entry, unless this tilemap's own cell is empty too. Priority and bits outside the format's fields are kept.
+    /// An empty cell becomes the empty entry, unless this tilemap's own cell shows no tile. Priority and bits outside the format's fields are kept from the map.
     /// </remarks>
-    public MagitekResult WriteEntries(Arranger working)
+    public MagitekResult WriteEntries(TilemapGrid grid)
     {
-        if (PlanWrites(working, out var data, out var writes) is { } error)
+        if (PlanWrites(grid, out var data, out var writes) is { } error)
             return new MagitekResult.Failed(error);
 
         if (writes.Count == 0)
@@ -435,18 +451,18 @@ public sealed class TilemapArranger : Arranger, IDisposable
     }
 
     /// <summary>
-    /// Checks that <see cref="WriteEntries"/> would accept every cell of <paramref name="working"/>, without writing anything
+    /// Checks that <see cref="WriteEntries"/> would accept every cell of <paramref name="grid"/>, without writing anything
     /// </summary>
-    public MagitekResult CanWriteEntries(Arranger working) =>
-        PlanWrites(working, out _, out _) is { } error ? new MagitekResult.Failed(error) : MagitekResult.SuccessResult;
+    public MagitekResult CanWriteEntries(TilemapGrid grid) =>
+        PlanWrites(grid, out _, out _) is { } error ? new MagitekResult.Failed(error) : MagitekResult.SuccessResult;
 
-    private string? PlanWrites(Arranger working, out byte[] data, out List<(int Offset, MapEntry Entry)> writes)
+    private string? PlanWrites(TilemapGrid grid, out byte[] data, out List<(int Offset, MapEntry Entry)> writes)
     {
         data = [];
         writes = [];
 
-        if (working.ArrangerElementSize != ArrangerElementSize)
-            return $"Tilemap '{Name}' is {ArrangerElementSize.Width}x{ArrangerElementSize.Height} cells, not {working.ArrangerElementSize.Width}x{working.ArrangerElementSize.Height}";
+        if (grid.Width != ArrangerElementSize.Width || grid.Height != ArrangerElementSize.Height)
+            return $"Tilemap '{Name}' is {ArrangerElementSize.Width}x{ArrangerElementSize.Height} cells, not {grid.Width}x{grid.Height}";
 
         if (MapReadOnlyReason is { } readOnlyReason)
             return $"The map of tilemap '{Name}' is read-only because it {readOnlyReason}";
@@ -460,7 +476,7 @@ public sealed class TilemapArranger : Arranger, IDisposable
             for (int x = 0; x < width; x++)
             {
                 var offset = ScreenLayout.EntryIndex(x, y, width) * entryBytes;
-                var cell = working.GetElement(x, y);
+                var cell = grid[x, y];
 
                 if (offset + entryBytes > data.Length)
                 {
@@ -472,7 +488,7 @@ public sealed class TilemapArranger : Arranger, IDisposable
                 var current = MapFormat.Decode(data.AsSpan(offset, entryBytes));
                 MapEntry target;
 
-                if (cell is not ArrangerElement el)
+                if (cell is not { } entry)
                 {
                     if (GetElement(x, y) is null)
                         continue;
@@ -481,14 +497,7 @@ public sealed class TilemapArranger : Arranger, IDisposable
                 }
                 else
                 {
-                    var tileResult = FindTileIndex(el);
-                    if (tileResult.HasFailed)
-                        return $"Cell ({x}, {y}) of tilemap '{Name}' {tileResult.AsError.Reason}";
-
-                    if (FindCodecSlot(el.Codec, current.Palette) is not int slot)
-                        return $"Cell ({x}, {y}) of tilemap '{Name}' uses a palette that is in no palette slot";
-
-                    target = new MapEntry(tileResult.AsSuccess.Result, slot, el.Mirror.FlipsHorizontally(), el.Mirror.FlipsVertically(), current.Priority);
+                    target = entry with { Priority = current.Priority };
                 }
 
                 if (target != current)
@@ -500,10 +509,21 @@ public sealed class TilemapArranger : Arranger, IDisposable
     }
 
     /// <summary>
-    /// The map source, the tile source and every assigned palette slot
+    /// The map and tile sources (Cascade), every assigned slot palette (FallbackPalette) and the tile palette arranger when set (ClearTilePalette)
     /// </summary>
-    public override IEnumerable<IProjectResource> LinkedResources =>
-        new IProjectResource[] { MapSource, TileSource }.Concat(PaletteSlots.OfType<Palette>()).Distinct().ToList();
+    public IEnumerable<ResourceEdge> Dependencies
+    {
+        get
+        {
+            var edges = new List<ResourceEdge> { new(MapSource, ResourceEdgeKind.Cascade), new(TileSource, ResourceEdgeKind.Cascade) };
+            edges.AddRange(PaletteSlots.OfType<Palette>().Select(x => new ResourceEdge(x, ResourceEdgeKind.FallbackPalette)));
+
+            if (TilePaletteArranger is not null)
+                edges.Add(new(TilePaletteArranger, ResourceEdgeKind.ClearTilePalette));
+
+            return edges.Distinct().ToList();
+        }
+    }
 
     public void Dispose()
     {

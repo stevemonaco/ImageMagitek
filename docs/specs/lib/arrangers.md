@@ -4,6 +4,7 @@ title: Arrangers and elements
 project: ImageMagitek, ImageMagitek.Services
 sources:
   - ImageMagitek/Arranger/Arranger.cs
+  - ImageMagitek/Arranger/IArrangerView.cs
   - ImageMagitek/Arranger/ArrangerElement.cs
   - ImageMagitek/Arranger/SequentialArranger.cs
   - ImageMagitek/Arranger/ScatteredArranger.cs
@@ -18,6 +19,8 @@ sources:
   - ImageMagitek.Services/Stores/ElementStore.cs
 types:
   - Arranger
+  - IArrangerView
+  - ArrangerViewExtensions
   - SequentialArranger
   - ScatteredArranger
   - ArrangerElement
@@ -66,12 +69,14 @@ depends:
 
 ## Purpose
 
-An arranger is a 2D grid of elements, each naming a data source, a bit address, a codec (and through an indexed codec, a palette) and a display mirror/rotation. A sequential arranger lays contiguous data from one source across the grid for browsing; a scattered arranger places arbitrary elements and is the project resource. A tilemap arranger (`ArrangerMode.Tilemap`, `TilemapArranger`) works out its elements from map entries and is specified in LIB-TILEMAPS. LIB-IMAGES decodes arrangers to pixels and writes them back; LIB-PROJECT-FORMAT persists scattered arrangers; missing-source and same-project checks are in LIB-PROJECT-SERVICE.
+An arranger is a 2D grid of elements, each naming a data source, a bit address, a codec (and through an indexed codec, a palette) and a display mirror/rotation. A sequential arranger lays contiguous data from one source across the grid for browsing; a scattered arranger places arbitrary elements and is the project resource. `IArrangerView` is the read-only side of an arranger (grid, sizes, color type, layout and element lookup) that images, export and import take; a tilemap and its working view (LIB-TILEMAPS) and a metatile map layer (LIB-METATILE-MAPS) are views but not arrangers. `ArrangerMode` is `Sequential` or `Scattered`. LIB-IMAGES decodes arrangers to pixels and writes them back; LIB-PROJECT-FORMAT persists scattered arrangers; missing-source and same-project checks are in LIB-PROJECT-SERVICE.
 
 ## Requirements
 
 ### Grid and elements
 
+- **LIB-ARRANGERS-053** — `IArrangerView` shall expose the element grid (element lookup), the element and pixel sizes, the color type, the layout and the name read-only, and every `Arranger` shall implement it. Enumeration, pixel lookup and the referenced palettes (LIB-ARRANGERS-004 to -006) shall work on any view.
+  - Tests: `ArrangerViewTests.IndexedImage_ViewOnly_RendersSameAsArranger`
 - **LIB-ARRANGERS-001** — The arranger shall report its size in elements, the pixel size of one element, and its pixel size as their product.
   - Tests: `ArrangerBuilderTests.Build_ScatteredArranger`
 - **LIB-ARRANGERS-002** — When an element is set at a grid position, the arranger shall store it relocated to that position's pixel coordinates (scattered) and refuse an element whose codec color type differs from the arranger's.
@@ -80,19 +85,19 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
   - Tests: `ImageImporterTests.Prepare_UndefinedElement_IsSkipped`
 - **LIB-ARRANGERS-004** — When asked for the element at a pixel outside the arranger, the arranger shall throw an out-of-range error.
   - Tests: untested
-- **LIB-ARRANGERS-005** — The arranger shall enumerate elements and element locations row by row, left to right, for the whole grid, an element rectangle, or every element touched by a pixel rectangle; an empty pixel rectangle yields nothing.
+- **LIB-ARRANGERS-005** — The arranger shall enumerate elements row by row, left to right, for the whole grid, an element rectangle, or every element touched by a pixel rectangle, and element locations for the whole grid or a pixel rectangle; an empty pixel rectangle yields nothing.
   - Tests: untested
-- **LIB-ARRANGERS-006** — The arranger shall report the distinct palettes and the distinct codecs its elements use, and as linked resources every palette and data source its elements reference.
-  - Tests: untested
-- **LIB-ARRANGERS-007** — When a data source is unlinked, the arranger shall empty every element that reads from it and report whether any changed; unlinking a palette shall change nothing and report false.
-  - Tests: untested
+- **LIB-ARRANGERS-006** — The arranger shall report the distinct palettes its elements use, and as dependencies a `DropElements` edge per data source and a `FallbackPalette` edge per indexed codec palette its elements reference (LIB-PROJECT-TREE-032).
+  - Tests: `ResourceGraphTests.ScatteredArranger_DropsElementsOnSourcesAndFallsBackPalettes`
+- **LIB-ARRANGERS-007** — `ScatteredArranger.ResetElementsReading` shall empty every element that reads from one of the given sources.
+  - Tests: `ScatteredArrangerTests.ResetElementsReading_ResetsOnlyElementsOnTheSources`
 - **LIB-ARRANGERS-008** — An element shall report itself within its source only when its whole encoded storage lies before the end of the source.
   - Tests: `IndexedImageTests.ArrangerPastEndOfSource_RendersEmptyAndSavesWithoutGrowing`
-- **LIB-ARRANGERS-009** — The arranger shall be read-only when any element uses a codec that cannot encode or reads a read-only data source, and a tilemap arranger also when its tile source is read-only (LIB-TILEMAPS-031).
+- **LIB-ARRANGERS-009** — The arranger shall be read-only when any element uses a codec that cannot encode or reads a read-only data source, and a tilemap view also when its tile source is read-only (LIB-TILEMAPS-031).
   - Tests: `ReadOnlyArrangerTests.IsReadOnly_DecodeOnlyCodec_IsTrue`, `ReadOnlyArrangerTests.IsReadOnly_EncodableCodec_IsFalse`, `ReadOnlyArrangerTests.IsReadOnly_ElementOnReadOnlySource_IsTrue`
-- **LIB-ARRANGERS-049** — When the read-only reason is requested, the arranger shall return null when writable, otherwise a reason naming the first offending element's codec or data file; for a tilemap whose elements give no reason, the reason its tile source gives (LIB-TILEMAPS-031).
+- **LIB-ARRANGERS-049** — When the read-only reason is requested, the arranger shall return null when writable, otherwise a reason naming the first offending element's codec or data file; for a tilemap view (a tilemap or its working view) whose elements give no reason, the reason its tile source gives (LIB-TILEMAPS-031).
   - Tests: `ReadOnlyArrangerTests.GetReadOnlyReason_NamesCodecOrDataFile`, `TilemapArrangerTests.CompressedTileSource_ReadOnlyReasonNamesCompressedSource`, `TilemapArrangerTests.UncompressedTilemap_IsWritable`
-- **LIB-ARRANGERS-051** — The arranger shall report the first missing file data source among its elements' sources, its referenced palettes' sources and, for a tilemap, its map source, resolving a compressed source to its parent, or none when every file exists.
+- **LIB-ARRANGERS-051** — The arranger shall report the first missing file data source among its elements' sources, its referenced palettes' sources and, for a tilemap view, its map and tile sources, resolving a compressed source to its parent, or none when every file exists.
   - Tests: `ArrangerExtensionsTests.FindMissingDataSource_ElementOrPaletteSource`, `TilemapArrangerTests.FindMissingDataSource_MissingMapFile_ReturnsIt`
 - **LIB-ARRANGERS-010** — When a pixel point outside the arranger is converted to an element location, the conversion shall throw an out-of-range error.
   - Tests: untested
@@ -226,6 +231,8 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
 - The element store is created once at bootstrap and is not reloaded.
 
 ## Decisions
+
+- **A read-only view interface, not a read-only arranger subclass.** Images, renderers, export, import, copies and selection take `IArrangerView`; only arranger edits take `Arranger`. Reason: a tilemap or metatile layer that derived from `Arranger` inherited mutators it could only throw from, and every caller had to know which arrangers those were. Rejected: a `DerivedArranger` base that throws or ignores the mutators (the previous design under a new name). The non-mutating members are extension methods on the view, so there is one implementation and call sites are unchanged.
 
 - **Mirror and rotation are display attributes.** They change how an element is decoded and encoded, not the stored pixels, so they are free to toggle and undo. Rejected: pixel-level flip and rotate, which remains a selection-tool gap.
 - **Stored mirror and rotation mean rotate, then mirror.** Render (LIB-IMAGES-006) decodes, rotates, then mirrors, and encode (LIB-IMAGES-015) inverts that order. The rotate tool turns the element as shown on screen: for a horizontal or vertical mirror `M`, `M∘Q∘M = Q⁻¹`, so `TryRotateElement` reverses the requested quarter turn before composing; mirror `Both` equals a turn and commutes with rotation, so it is unchanged. `TryMirrorElement` already composes in display space. Reason: the meaning stored in 0.9 is already consistent in render and encode, and only the edit was wrong, so no saved project renders differently. Rejected: changing render to mirror-then-rotate (changes how every saved element that is both mirrored and rotated renders, for no gain); normalizing to the 8 distinct transforms, such as `both` → `turn` (rewrites files with no visible change, and `mirror="both"` is what people write by hand).

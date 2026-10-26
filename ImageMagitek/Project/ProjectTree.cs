@@ -11,6 +11,7 @@ namespace ImageMagitek.Project;
 public sealed class ProjectTree : PathTreeBase<ResourceNode, IProjectResource>
 {
     private readonly Dictionary<IProjectResource, ResourceNode> _index = new(ReferenceEqualityComparer.Instance);
+    private List<ProjectTreeChange>? _heldChanges;
 
     public ImageProject? Project => Root.Item as ImageProject;
     public string Name => Root.Item.Name;
@@ -21,7 +22,7 @@ public sealed class ProjectTree : PathTreeBase<ResourceNode, IProjectResource>
     public bool IsStandaloneFile => Root is DataFileNode;
 
     /// <summary>
-    /// Raised after a node in the tree is added, removed, moved or renamed
+    /// Raised after a node in the tree is added, removed, moved, renamed or replaced
     /// </summary>
     public event EventHandler<ProjectTreeChange>? Changed;
 
@@ -49,7 +50,79 @@ public sealed class ProjectTree : PathTreeBase<ResourceNode, IProjectResource>
         else if (change.Kind == ProjectTreeChangeKind.Removed)
             Unindex(change.Node);
 
-        Changed?.Invoke(this, change);
+        if (_heldChanges is not null)
+            _heldChanges.Add(change);
+        else
+            Changed?.Invoke(this, change);
+    }
+
+    /// <summary>
+    /// Runs <paramref name="swap"/> while holding tree changes, then raises each listed node detached and replaced by the node attached at its new key
+    /// as one Replaced change (LIB-PROJECT-TREE-035)
+    /// </summary>
+    public T ReplaceNodes<T>(IReadOnlyList<(ResourceNode Old, string NewKey)> replacements, Func<T> swap)
+    {
+        if (_heldChanges is not null)
+            throw new InvalidOperationException($"{nameof(ReplaceNodes)} cannot be nested");
+
+        var held = _heldChanges = [];
+        try
+        {
+            return swap();
+        }
+        finally
+        {
+            _heldChanges = null;
+            foreach (var change in ResolveHeldChanges(held, replacements))
+                Changed?.Invoke(this, change);
+        }
+    }
+
+    /// <inheritdoc cref="ReplaceNodes{T}"/>
+    public void ReplaceNodes(IReadOnlyList<(ResourceNode Old, string NewKey)> replacements, Action swap) =>
+        ReplaceNodes(replacements, () =>
+        {
+            swap();
+            return true;
+        });
+
+    private List<ProjectTreeChange> ResolveHeldChanges(List<ProjectTreeChange> held, IReadOnlyList<(ResourceNode Old, string NewKey)> replacements)
+    {
+        var dropped = new HashSet<ProjectTreeChange>(ReferenceEqualityComparer.Instance);
+        var latest = new Dictionary<ResourceNode, ProjectTreeChange>(ReferenceEqualityComparer.Instance);
+
+        foreach (var change in held.Where(x => x.Kind is ProjectTreeChangeKind.Added or ProjectTreeChangeKind.Removed))
+        {
+            // A node added then removed, or removed then put back under the same parent, was never visibly changed
+            if (latest.Remove(change.Node, out var earlier) && earlier.Kind != change.Kind
+                && (earlier.Kind == ProjectTreeChangeKind.Added || ReferenceEquals(earlier.Parent, change.Parent)))
+            {
+                dropped.Add(earlier);
+                dropped.Add(change);
+            }
+            else
+            {
+                latest[change.Node] = change;
+            }
+        }
+
+        var replacedAt = new Dictionary<ProjectTreeChange, ProjectTreeChange>(ReferenceEqualityComparer.Instance);
+
+        foreach (var (old, newKey) in replacements)
+        {
+            if (!TryGetNode(newKey, out var node)
+                || latest.GetValueOrDefault(old) is not { Kind: ProjectTreeChangeKind.Removed } removed
+                || latest.GetValueOrDefault(node) is not { Kind: ProjectTreeChangeKind.Added } added)
+                continue;
+
+            dropped.Add(removed);
+            replacedAt[added] = new ProjectTreeChange(ProjectTreeChangeKind.Replaced, node, added.Parent, removed.Parent, OldNode: old);
+        }
+
+        return held
+            .Select(x => replacedAt.GetValueOrDefault(x) ?? x)
+            .Where(x => !dropped.Contains(x))
+            .ToList();
     }
 
     private void Index(ResourceNode node)

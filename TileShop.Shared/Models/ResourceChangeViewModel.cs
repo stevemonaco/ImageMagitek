@@ -1,3 +1,4 @@
+using System.Linq;
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek.Project;
 
@@ -14,16 +15,23 @@ public partial class ResourceChangeViewModel : ObservableObject
     [ObservableProperty] private bool _lostPalette;
     [ObservableProperty] private bool _lostElement;
     [ObservableProperty] private bool _lostTilePalette;
+    [ObservableProperty] private bool _lostSlotPalette;
     [ObservableProperty] private bool _isChanged;
 
-    public string ChangeDescription => (LostElement, LostPalette) switch
+    public string ChangeDescription
     {
-        (true, true) => "loses elements, uses default palette",
-        (true, false) => "loses elements",
-        (false, true) => "uses default palette",
-        _ when LostTilePalette => "uses the generated tile palette",
-        _ => ""
-    };
+        get
+        {
+            string?[] parts =
+            [
+                LostElement ? "loses elements" : null,
+                LostPalette ? "uses default palette" : null,
+                LostTilePalette ? "uses the generated tile palette" : null,
+                LostSlotPalette ? "removed palette slots use slot 0" : null
+            ];
+            return string.Join(", ", parts.OfType<string>());
+        }
+    }
 
     public ResourceChangeViewModel(ResourceNode resourceNode, string resourcePathKey, bool removed, bool lostPalette, bool lostElement)
     {
@@ -49,6 +57,7 @@ public partial class ResourceChangeViewModel : ObservableObject
         _lostPalette = change.LostPalette;
         _lostElement = change.LostElement;
         _lostTilePalette = change.LostTilePalette;
+        _lostSlotPalette = change.LostSlotPalette;
         IsChanged = change.IsChanged;
     }
 }

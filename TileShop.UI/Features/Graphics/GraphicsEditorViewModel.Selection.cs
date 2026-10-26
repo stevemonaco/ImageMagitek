@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
-using ImageMagitek.Codec;
+using ImageMagitek.Project;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
@@ -56,15 +56,14 @@ public partial class GraphicsEditorViewModel
     /// Clears the shared clipboard when it holds copied elements that read from or use any of <paramref name="resources"/>.
     /// </summary>
     /// <returns>True if the clipboard was cleared</returns>
-    public static bool ClearClipboardIfReferencesAny(IReadOnlySet<object> resources)
+    public static bool ClearClipboardIfReferencesAny(IReadOnlySet<IProjectResource> resources)
     {
         if (_clipboard is not ElementCopy copy)
             return false;
 
         foreach (var el in copy.Elements)
         {
-            if (el is { } element && (resources.Contains(element.Source)
-                || element.Codec is IIndexedCodec { Palette: { } palette } && resources.Contains(palette)))
+            if (el is { } element && UsesAny(element, resources))
             {
                 _clipboard = null;
                 return true;

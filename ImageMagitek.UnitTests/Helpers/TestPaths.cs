@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using Xunit;
 
 namespace ImageMagitek.UnitTests;
 
@@ -23,6 +24,13 @@ public static class TestPaths
 
     public static string CreateTempPath(string extension) =>
         Path.Combine(Path.GetTempPath(), $"imagemagitek-{Guid.NewGuid():N}{extension}");
+
+    internal static void AssertNoTransactionFiles(string directory)
+    {
+        Assert.Empty(Directory.EnumerateFiles(directory, "*.tmp", SearchOption.AllDirectories));
+        Assert.Empty(Directory.EnumerateFiles(directory, "*.bak", SearchOption.AllDirectories));
+        Assert.Empty(Directory.EnumerateFiles(directory, "_transaction.json", SearchOption.AllDirectories));
+    }
 
     private static string ThisDir([CallerFilePath] string path = "") => Path.GetDirectoryName(path)!;
 }

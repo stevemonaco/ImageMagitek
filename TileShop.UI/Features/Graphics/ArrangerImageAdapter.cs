@@ -18,7 +18,7 @@ public sealed class ArrangerImageAdapter
     private IndexedImage? _indexedImage;
     private DirectImage? _directImage;
 
-    public Arranger Arranger { get; private set; }
+    public IArrangerView Arranger { get; private set; }
     public PixelColorType ColorType => Arranger.ColorType;
     public bool IsIndexed => ColorType == PixelColorType.Indexed;
     public bool IsDirect => ColorType == PixelColorType.Direct;
@@ -31,13 +31,13 @@ public sealed class ArrangerImageAdapter
     public int Left => IsIndexed ? _indexedImage!.Left : _directImage!.Left;
     public int Top => IsIndexed ? _indexedImage!.Top : _directImage!.Top;
 
-    public ArrangerImageAdapter(Arranger arranger)
+    public ArrangerImageAdapter(IArrangerView arranger)
     {
         Arranger = arranger;
         CreateImage(0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
     }
 
-    // public ArrangerImageAdapter(Arranger arranger, int x, int y, int width, int height)
+    // public ArrangerImageAdapter(IArrangerView arranger, int x, int y, int width, int height)
     // {
     //     Arranger = arranger;
     //     CreateImage(x, y, width, height);
@@ -58,13 +58,13 @@ public sealed class ArrangerImageAdapter
         }
     }
 
-    public void Reinitialize(Arranger arranger)
+    public void Reinitialize(IArrangerView arranger)
     {
         Arranger = arranger;
         CreateImage(0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
     }
 
-    public void Reinitialize(Arranger arranger, int x, int y, int width, int height)
+    public void Reinitialize(IArrangerView arranger, int x, int y, int width, int height)
     {
         Arranger = arranger;
         CreateImage(x, y, width, height);

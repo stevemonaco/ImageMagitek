@@ -9,11 +9,17 @@ using ImageMagitek.Project;
 
 namespace ImageMagitek;
 
-public abstract class DataSource : IProjectResource, IDisposable
+public abstract class DataSource : IProjectResource, IDisposable, IUnavailableResource
 {
     public string Name { get; set; }
     public bool CanContainChildResources => false;
     public bool ShouldBeSerialized { get; set; } = true;
+
+    /// <inheritdoc/>
+    public virtual FileDataSource? FindMissingDataSource() => null;
+
+    /// <inheritdoc/>
+    public virtual string? UnavailableReason => null;
 
     public virtual long Length
     {
@@ -275,10 +281,7 @@ public abstract class DataSource : IProjectResource, IDisposable
             throw new InvalidOperationException($"Data source '{Name}' is read-only");
     }
 
-    public virtual IEnumerable<IProjectResource> LinkedResources =>
-        Enumerable.Empty<IProjectResource>();
-
-    public virtual bool UnlinkResource(IProjectResource resource) => false;
+    public virtual IEnumerable<ResourceEdge> Dependencies => [];
 
     protected virtual void Dispose(bool disposing)
     {

@@ -12,14 +12,14 @@ namespace ImageMagitek;
 /// </summary>
 public sealed class IndexedImage : ImageBase<byte>
 {
-    public override Arranger Arranger { get; }
+    public override IArrangerView Arranger { get; }
     public override byte[] Image { get; protected set; }
 
     /// <summary>
     /// Creates an IndexedImage of an Arranger
     /// </summary>
     /// <param name="arranger">Source Arranger</param>
-    public IndexedImage(Arranger arranger) :
+    public IndexedImage(IArrangerView arranger) :
         this(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height)
     {
     }
@@ -32,7 +32,7 @@ public sealed class IndexedImage : ImageBase<byte>
     /// <param name="y">Top-edge of subsection in pixel coordinates</param>
     /// <param name="width">Width of subsection in pixel coordinates</param>
     /// <param name="height">Height of subsection in pixel coordinates</param>
-    public IndexedImage(Arranger arranger, int x, int y, int width, int height)
+    public IndexedImage(IArrangerView arranger, int x, int y, int width, int height)
     {
         if (arranger is null)
             throw new ArgumentNullException(nameof(arranger), $"{nameof(IndexedImage)}.Ctor parameter was null");

@@ -8,6 +8,11 @@ public interface IProjectSerializerFactory
     List<IProjectResource> GlobalResources { get; }
     IMapFormatFactory MapFormatFactory { get; }
 
+    /// <summary>
+    /// The resource kinds the reader, writer and <see cref="BuildResources"/> dispatch through
+    /// </summary>
+    ResourceKindRegistry Kinds { get; }
+
     IProjectReader CreateReader();
     IProjectWriter CreateWriter(ProjectTree tree);
 

@@ -6,6 +6,7 @@ using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Image;
+using ImageMagitek.Tilemaps;
 using TileShop.Shared.Models;
 using TileShop.UI.Models;
 
@@ -21,7 +22,7 @@ public sealed class GraphicsEditHistory
     private readonly ICodecFactory _codecFactory;
     private ArrangerSnapshot? _base;
 
-    public GraphicsEditHistory(ObservableCollection<HistoryAction> undo, ObservableCollection<HistoryAction> redo, Arranger working,
+    public GraphicsEditHistory(ObservableCollection<HistoryAction> undo, ObservableCollection<HistoryAction> redo, IArrangerView working,
         ICodecFactory codecFactory)
     {
         _undo = undo;
@@ -33,7 +34,7 @@ public sealed class GraphicsEditHistory
     /// <summary>
     /// Clears both histories and makes <paramref name="working"/> the state that undoing everything returns to
     /// </summary>
-    public void Reset(Arranger working)
+    public void Reset(IArrangerView working)
     {
         _undo.Clear();
         _redo.Clear();
@@ -45,9 +46,9 @@ public sealed class GraphicsEditHistory
     /// </summary>
     public bool HasPixelEdits => _undo.Any(x => x is not ArrangerHistoryAction);
 
-    public Arranger RestoreBase() => _base!.Restore(_codecFactory);
+    public IArrangerView RestoreBase() => _base!.Restore(_codecFactory);
 
-    public void Add(HistoryAction action, Arranger working)
+    public void Add(HistoryAction action, IArrangerView working)
     {
         if (action is ArrangerHistoryAction arrangerAction)
             arrangerAction.After = ArrangerSnapshot.Capture(working);
@@ -231,6 +232,6 @@ public sealed class GraphicsEditHistory
             Apply(_undo[i], image);
     }
 
-    private static ArrangerSnapshot? CaptureBase(Arranger working) =>
-        working is ScatteredArranger ? ArrangerSnapshot.Capture(working) : null;
+    private static ArrangerSnapshot? CaptureBase(IArrangerView working) =>
+        working is ScatteredArranger or TilemapView ? ArrangerSnapshot.Capture(working) : null;
 }

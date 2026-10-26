@@ -163,6 +163,11 @@ public partial class MetatileMapEditorViewModel : ResourceEditorBaseViewModel, I
         Redraw();
     }
 
+    /// <inheritdoc/>
+    public override bool DependsOn(IReadOnlySet<IProjectResource> resources) => base.DependsOn(resources) || Map.Sets.Any(x => resources.Contains(x.Set));
+
+    public override void OnClosing() => ShowAllLayers();
+
     /// <summary>
     /// Whether the map draws from <paramref name="resource"/>, directly or through compressed data
     /// </summary>

@@ -4,6 +4,7 @@ using System.Linq;
 using ImageMagitek;
 using ImageMagitek.Metatiles;
 using ImageMagitek.Project;
+using ImageMagitek.Project.Serialization;
 
 namespace TileShop.CLI.Porters;
 
@@ -18,7 +19,7 @@ public static class Exporter
             return false;
         }
 
-        if (node.Item is not (MetatileMap or Arranger and not SequentialArranger))
+        if (ResourceKindRegistry.BuiltIn.FindByResource(node.Item)?.Exportable != true)
         {
             output.WriteLine($"Exporting '{arrangerKey}'...Resource key is not a Scattered Arranger, Tilemap or Metatile Map");
             return false;
@@ -29,20 +30,14 @@ public static class Exporter
 
         output.Write($"Exporting '{arrangerKey}' to '{exportFileName}'...");
 
-        var missing = node.Item is MetatileMap missingMap ? missingMap.FindMissingDataSource() : ((Arranger)node.Item).FindMissingDataSource();
-        if (missing is not null)
+        var unavailable = (IUnavailableResource)node.Item;
+        if (unavailable.FindMissingDataSource() is { } missing)
         {
             output.WriteLine($"Data file '{missing.Name}' is missing at '{missing.FileLocation}'");
             return false;
         }
 
-        var mapError = node.Item switch
-        {
-            MetatileMap m => m.MapError,
-            TilemapArranger t => t.MapError,
-            _ => null
-        };
-        if (mapError is not null)
+        if (unavailable.UnavailableReason is { } mapError)
         {
             output.WriteLine(mapError);
             return false;
@@ -63,17 +58,17 @@ public static class Exporter
             {
                 map.Composite().ExportImage(exportFileName, new ImageSharpFileAdapter());
             }
-            else if (node.Item is Arranger { ColorType: PixelColorType.Indexed } indexed)
+            else if (node.Item is IArrangerView { ColorType: PixelColorType.Indexed } indexed)
             {
                 new IndexedImage(indexed).ExportImage(exportFileName, new ImageSharpFileAdapter());
             }
-            else if (node.Item is Arranger { ColorType: PixelColorType.Direct } direct)
+            else if (node.Item is IArrangerView { ColorType: PixelColorType.Direct } direct)
             {
                 new DirectImage(direct).ExportImage(exportFileName, new ImageSharpFileAdapter());
             }
             else
             {
-                output.WriteLine($"Color type '{((Arranger)node.Item).ColorType}' is not supported");
+                output.WriteLine($"Color type '{((IArrangerView)node.Item).ColorType}' is not supported");
                 return false;
             }
         }

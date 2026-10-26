@@ -6,14 +6,17 @@ namespace ImageMagitek.Project.Serialization;
 public interface IProjectWriter
 {
     /// <summary>
-    /// Writes every changed resource in one transaction, together with <paramref name="additionalFiles"/>
+    /// Writes every changed resource in one transaction, together with <paramref name="additionalFiles"/>, mapping references with <paramref name="resourceMap"/> when given
     /// </summary>
     /// <param name="additionalFiles">Files outside the tree, such as a table manifest, committed in the same transaction</param>
-    Task<MagitekResult> WriteProjectAsync(string fileName, IReadOnlyList<(string Path, string Contents)>? additionalFiles = null);
+    Task<MagitekResult> WriteProjectAsync(string fileName, IReadOnlyList<(string Path, string Contents)>? additionalFiles = null,
+        Dictionary<IProjectResource, string>? resourceMap = null);
     /// <summary>
-    /// Writes those of <paramref name="nodes"/> that changed, leaving every other resource unwritten, together with <paramref name="additionalFiles"/> in one transaction
+    /// Writes those of <paramref name="nodes"/> that changed, leaving every other resource unwritten, together with <paramref name="additionalFiles"/> in one transaction,
+    /// mapping references with <paramref name="resourceMap"/> when given
     /// </summary>
-    Task<MagitekResult> WriteResourcesAsync(IReadOnlyList<ResourceNode> nodes, IReadOnlyList<(string Path, string Contents)>? additionalFiles = null);
+    Task<MagitekResult> WriteResourcesAsync(IReadOnlyList<ResourceNode> nodes, IReadOnlyList<(string Path, string Contents)>? additionalFiles = null,
+        Dictionary<IProjectResource, string>? resourceMap = null);
 
     /// <summary>
     /// Serializes the node's current model (<see cref="MapCurrentModel"/>) to the exact text a write produces for it; throws when it cannot be written

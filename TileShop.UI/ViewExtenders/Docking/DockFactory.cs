@@ -142,6 +142,12 @@ public class DockFactory : Factory
             if (removeItem is not null && !removeItem.IsClosing)
                 RemoveDockable(removeItem, true);
         }
+        else if (e.Action == NotifyCollectionChangedAction.Replace && e.OldItems![0] is ResourceEditorBaseViewModel replacedItem
+            && e.NewItems![0] is ResourceEditorBaseViewModel replacement && _rootDock is not null)
+        {
+            if (FindDockable(_rootDock, x => x is DockableEditorViewModel d && d.Editor == replacedItem) is DockableEditorViewModel dockable)
+                dockable.Editor = replacement;
+        }
     }
 
     public override void InitLayout(IDockable layout)

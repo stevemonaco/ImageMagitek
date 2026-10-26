@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using ImageMagitek.Tilemaps;
 using Monaco.PathTree;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
@@ -101,7 +102,7 @@ public partial class GraphicsEditorViewModel
         _preferencesStore.Save();
     }
 
-    internal bool TryApplyPalette(int pixelX, int pixelY, Palette palette)
+    public bool TryApplyPalette(int pixelX, int pixelY, Palette palette)
     {
         if (!IsIndexedColor)
             return false;
@@ -154,6 +155,16 @@ public partial class GraphicsEditorViewModel
 
         if (el is ArrangerElement { Codec: IIndexedCodec codec } element)
         {
+            if (_tilePlotter is not null)
+            {
+                var cell = CellAt(pixelX, pixelY);
+                if (_imageAdapter.CanSetPalette(pixelX, pixelY, palette).HasFailed || !_tilePlotter.ApplyPalette(cell.X, cell.Y, palette))
+                    return false;
+
+                IsModified = true;
+                return true;
+            }
+
             if (ReferenceEquals(palette, codec.Palette))
                 return false;
 
@@ -175,7 +186,7 @@ public partial class GraphicsEditorViewModel
         && _imageAdapter.CanSetPalette(pixelX, pixelY, SelectedPalette.Palette).HasSucceeded;
 
     private bool IsPaletteInTilemapSlot(Palette palette) =>
-        _projectArranger is not TilemapArranger tilemap || tilemap.FindPaletteSlot(palette, 0) is not null;
+        _tilemap is null || _tilemap.FindPaletteSlot(palette, 0) is not null;
 
     internal bool CanPickPaletteAtPosition(int pixelX, int pixelY) =>
         IsIndexedColor && WorkingArranger.GetElementAtPixel(pixelX, pixelY)?.Codec is IIndexedCodec;
@@ -266,10 +277,10 @@ public partial class GraphicsEditorViewModel
 
     private MagitekResult ApplyElementPaste(ArrangerPaste paste, ElementCopy elementCopy)
     {
-        if (WorkingArranger is not ScatteredArranger arranger)
+        if (!HasEditableElements)
             return new MagitekResult.Failed($"Pasting elements into a '{WorkingArranger.GetType()}' is not supported");
 
-        if (!_projectService.AreResourcesInSameProject(elementCopy.ProjectResource, OriginatingProjectResource!))
+        if (elementCopy.ProjectResource is null || !_projectService.AreResourcesInSameProject(elementCopy.ProjectResource, OriginatingProjectResource!))
             return new MagitekResult.Failed("Copying arranger elements across projects is not permitted");
 
         var destRect = paste.Rect;
@@ -287,41 +298,10 @@ public partial class GraphicsEditorViewModel
         int copyWidth = Math.Min(elementCopy.Width - sourceX, WorkingArranger.ArrangerElementSize.Width - destX);
         int copyHeight = Math.Min(elementCopy.Height - sourceY, WorkingArranger.ArrangerElementSize.Height - destY);
 
-        if (_projectArranger is TilemapArranger tilemap)
-            return PasteIntoTilemap(tilemap, elementCopy, arranger, sourceStart, destStart, copyWidth, copyHeight);
+        if (WorkingArranger is ScatteredArranger arranger)
+            return ElementCopier.CopyElements(elementCopy, arranger, sourceStart, destStart, copyWidth, copyHeight);
 
-        return ElementCopier.CopyElements(elementCopy, arranger, sourceStart, destStart, copyWidth, copyHeight);
-    }
-
-    private static MagitekResult PasteIntoTilemap(TilemapArranger tilemap, ElementCopy elementCopy, ScatteredArranger working,
-        Point sourceStart, Point destStart, int copyWidth, int copyHeight)
-    {
-        var canCopy = ElementCopier.CanCopyElements(elementCopy, working, sourceStart, destStart, copyWidth, copyHeight);
-        if (canCopy.HasFailed)
-            return canCopy;
-
-        var cells = new List<(int X, int Y, ArrangerElement Element)>();
-        for (int y = 0; y < copyHeight; y++)
-        {
-            for (int x = 0; x < copyWidth; x++)
-            {
-                if (elementCopy.Elements[x + sourceStart.X, y + sourceStart.Y] is not ArrangerElement pasted)
-                    continue;
-
-                var destX = x + destStart.X;
-                var destY = y + destStart.Y;
-                var cellResult = tilemap.ToCellElement(pasted, working.GetElement(destX, destY));
-                if (cellResult.HasFailed)
-                    return new MagitekResult.Failed($"Cannot paste into tilemap '{tilemap.Name}': element at ({x + sourceStart.X}, {y + sourceStart.Y}) {cellResult.AsError.Reason}");
-
-                cells.Add((destX, destY, cellResult.AsSuccess.Result));
-            }
-        }
-
-        foreach (var (x, y, element) in cells)
-            working.SetElement(element, x, y);
-
-        return MagitekResult.SuccessResult;
+        return _tilePlotter!.Paste(elementCopy, sourceStart, destStart, copyWidth, copyHeight);
     }
 
     private MagitekResult ApplyPixelPaste(ArrangerPaste paste)
@@ -332,7 +312,7 @@ public partial class GraphicsEditorViewModel
         return GraphicsEditHistory.ApplyPixelPaste(_imageAdapter, paste.Copy, paste.Rect.SnappedLeft, paste.Rect.SnappedTop, DrawClipBounds);
     }
 
-    public bool CanDeleteElementSelection => IsArrangerMode && WorkingArranger is ScatteredArranger
+    public bool CanDeleteElementSelection => IsArrangerMode && HasEditableElements
         && Selection.HasSelection && Selection.SelectionRect.SnapMode == SnapMode.Element;
 
     [RelayCommand(CanExecute = nameof(CanDeleteElementSelection))]
@@ -341,7 +321,11 @@ public partial class GraphicsEditorViewModel
         if (!CanDeleteElementSelection)
             return;
 
-        ResetElements(WorkingArranger, Selection.SelectionRect);
+        if (_tilePlotter is not null)
+            _tilePlotter.Erase(ToCells(Selection.SelectionRect, WorkingArranger.ElementPixelSize));
+        else
+            ResetElements((ScatteredArranger)WorkingArranger, Selection.SelectionRect);
+
         AddHistoryAction(new DeleteElementSelectionHistoryAction());
 
         IsModified = true;
@@ -353,18 +337,23 @@ public partial class GraphicsEditorViewModel
     /// </summary>
     public static void ResetElements(Arranger arranger, SnappedRectangle rect)
     {
-        int startX = rect.SnappedLeft / arranger.ElementPixelSize.Width;
-        int startY = rect.SnappedTop / arranger.ElementPixelSize.Height;
-        int width = rect.SnappedWidth / arranger.ElementPixelSize.Width;
-        int height = rect.SnappedHeight / arranger.ElementPixelSize.Height;
-
-        for (int y = 0; y < height; y++)
+        var cells = ToCells(rect, arranger.ElementPixelSize);
+        for (int y = cells.Top; y < cells.Bottom; y++)
         {
-            for (int x = 0; x < width; x++)
+            for (int x = cells.Left; x < cells.Right; x++)
             {
-                arranger.ResetElement(x + startX, y + startY);
+                arranger.ResetElement(x, y);
             }
         }
+    }
+
+    private static Rectangle ToCells(SnappedRectangle rect, Size elementSize)
+    {
+        int startX = rect.SnappedLeft / elementSize.Width;
+        int startY = rect.SnappedTop / elementSize.Height;
+        int width = rect.SnappedWidth / elementSize.Width;
+        int height = rect.SnappedHeight / elementSize.Height;
+        return new Rectangle(startX, startY, width, height);
     }
 
     [RelayCommand]
@@ -379,7 +368,7 @@ public partial class GraphicsEditorViewModel
             if (dialogResult.Width == WorkingArranger.ArrangerElementSize.Width && dialogResult.Height == WorkingArranger.ArrangerElementSize.Height)
                 return;
 
-            WorkingArranger.Resize(dialogResult.Width, dialogResult.Height);
+            ((ScatteredArranger)WorkingArranger).Resize(dialogResult.Width, dialogResult.Height);
             CreateImages();
             AddHistoryAction(new ResizeArrangerHistoryAction());
 
